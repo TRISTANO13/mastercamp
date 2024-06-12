@@ -4,6 +4,8 @@ import tkinter as tk
 
 # Configuration du client SSL/TLS
 context = ssl.create_default_context()
+context.check_hostname = False
+context.verify_mode = ssl.CERT_NONE
 context.load_verify_locations("server.crt")
 
 # Connexion au serveur
