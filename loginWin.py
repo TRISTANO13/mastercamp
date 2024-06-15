@@ -3,6 +3,9 @@ from tkinter import messagebox
 from mainWin import MainWindow
 from database import authenticate_user, add_user
 import sqlite3
+import socket
+import ssl
+from threading import Thread
 
 class LoginWindow:
     def __init__(self, root):
@@ -24,6 +27,14 @@ class LoginWindow:
 
         self.register_button = tk.Button(root, text="Register", command=self.register)
         self.register_button.pack()
+        
+        #conf SSL
+        self.context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        self.context.check_hostname = False
+        self.context.verify_mode = ssl.CERT_NONE
+        
+        
+        
 
     def login(self):
         username = self.entry_username.get()
@@ -31,9 +42,17 @@ class LoginWindow:
 
         if (username == 'admin' and password == '1234') or authenticate_user(username, password):
             self.root.withdraw()  # Ferme la fenêtre de connexion
+            self.sock = socket.create_connection(('localhost', 8888))
+            self.secure_socket = self.context.wrap_socket(self.sock, server_hostname='localhost')
+
+            # Envoyer le nom d'utilisateur au serveur
+            self.secure_socket.sendall(username.encode())
+
+            # Ouvrir la fenêtre principale après la connexion
             self.open_main_window()
         else:
             messagebox.showerror("Login Failed", "Invalid username or password")
+
 
     def register(self):
         username = self.entry_username.get()
