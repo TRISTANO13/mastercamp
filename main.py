@@ -8,7 +8,7 @@ if __name__ == "__main__":
     print_users()
 
     # Supprimer un utilisateur
-    username_to_delete = ""
+    username_to_delete = "lucas"
     delete_user(username_to_delete)
     print(f"User '{username_to_delete}' deleted.")
 

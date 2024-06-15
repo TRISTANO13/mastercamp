@@ -1,5 +1,8 @@
 import tkinter as tk
 from tkinter import Toplevel
+import socket
+import ssl
+from threading import Thread
 
 class ChatWindow:
     def __init__(self, parent, email):
@@ -21,10 +24,33 @@ class ChatWindow:
         self.send_button.pack()
         
         self.email = email
-    
+        
+        self.context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        self.context.check_hostname = False
+        self.context.verify_mode = ssl.CERT_NONE
+
+        self.sock = socket.create_connection(('localhost', 8888))
+        self.secure_socket = self.context.wrap_socket(self.sock, server_hostname='localhost')
+        
+        Thread(target=self.receive_messages).start()
+
+    def receive_messages(self):
+        while True:
+            try:
+                data = self.secure_socket.recv(1024)
+                if not data:
+                    break
+                self.msg_list.insert(tk.END, f"{self.email}: {data.decode()}")
+            except:
+                break
+
     def send_message(self, event=None):
         message = self.entry_field.get()
         self.entry_field.delete(0, tk.END)
         self.msg_list.insert(tk.END, f"You: {message}")
-        # Here you would handle sending the message to the server and getting the response
-        self.msg_list.insert(tk.END, f"{self.email}: Echo: {message}")
+        self.secure_socket.sendall(message.encode())
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ChatWindow(root, "test@example.com")
+    root.mainloop()

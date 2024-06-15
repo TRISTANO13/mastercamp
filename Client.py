@@ -1,31 +1,29 @@
 import socket
 import ssl
+from threading import Thread
+
+def receive_messages(secure_socket):
+    while True:
+        try:
+            data = secure_socket.recv(1024)
+            if not data:
+                break
+            print(f"Reçu: {data.decode()}")
+        except:
+            break
 
 def start_client():
-    # Créer une socket TCP/IP
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
-    # Charger les certificats SSL
     context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-    context.load_verify_locations('cert.pem')
-    
-    # Établir la connexion
-    secure_socket = context.wrap_socket(client_socket, server_hostname='localhost')
-    server_address = ('localhost', 65432)
-    secure_socket.connect(server_address)
-    
-    try:
-        while True:
-            message = input("Vous: ")
-            secure_socket.sendall(message.encode('utf-8'))
-            
-            data = secure_socket.recv(1024)
-            print(f"Serveur: {data.decode('utf-8')}")
-            
-    except Exception as e:
-        print(f"Erreur: {e}")
-    finally:
-        secure_socket.close()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+
+    with socket.create_connection(('localhost', 8888)) as sock:
+        with context.wrap_socket(sock, server_hostname='localhost') as secure_socket:
+            print(secure_socket.version())
+            Thread(target=receive_messages, args=(secure_socket,)).start()
+            while True:
+                message = input("Vous: ")
+                secure_socket.sendall(message.encode())
 
 if __name__ == "__main__":
     start_client()
