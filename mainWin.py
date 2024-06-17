@@ -3,6 +3,7 @@ from tkinter import Listbox, messagebox
 import socket
 import ssl
 from threading import Thread
+from chatWin import*
 
 class MainWindow:
     def __init__(self, root):

@@ -40,7 +40,7 @@ class LoginWindow:
         username = self.entry_username.get()
         password = self.entry_password.get()
 
-        if (username == 'admin' and password == '1234') or authenticate_user(username, password):
+        if authenticate_user(username, password):
             self.root.withdraw()  # Ferme la fenêtre de connexion
             self.sock = socket.create_connection(('localhost', 8888))
             self.secure_socket = self.context.wrap_socket(self.sock, server_hostname='localhost')

@@ -18,10 +18,10 @@ class ChatServer:
         self.server_socket.listen(5)
         print(f'Server is listening on {SERVER_HOST}:{SERVER_PORT}')
 
-        self.client_sockets = {}  # Dictionnaire pour suivre les connexions des clients
+        self.client_sockets = {}  # Dictionary to track client connections
 
-        self.create_tables()  # Création des tables de la base de données SQLite
-        self.reset_connected_users()  # Réinitialisation des utilisateurs connectés
+        self.create_tables()  # Create SQLite database tables
+        self.reset_connected_users()  # Reset connected users
 
     def create_tables(self):
         with sqlite3.connect('chat_app.db') as conn:
@@ -33,17 +33,17 @@ class ChatServer:
             conn.commit()
 
     def reset_connected_users(self):
-        # Effacer tous les utilisateurs connectés au démarrage du serveur
+        # Clear all connected users on server start
         with sqlite3.connect('chat_app.db') as conn:
             cursor = conn.cursor()
             cursor.execute('DELETE FROM connected_users')
             conn.commit()
 
     def start(self):
-        # Démarrer le thread pour afficher les utilisateurs connectés toutes les 20 secondes
+        # Start thread to print connected users every 20 seconds
         Thread(target=self.print_connected_users_periodically).start()
 
-        # Démarrer le thread pour envoyer des pings aux clients toutes les 10 secondes
+        # Start thread to send pings to clients every 10 seconds
         Thread(target=self.send_ping_to_clients).start()
 
         while True:
@@ -52,35 +52,40 @@ class ChatServer:
             self.client_sockets[client_addr] = secure_socket
             print(f'Connection established with {client_addr}')
 
-            # Démarrer un thread pour gérer le client
+            # Start a thread to handle the client
             Thread(target=self.handle_client, args=(secure_socket, client_addr)).start()
 
     def handle_client(self, secure_socket, client_addr):
         try:
-            # Recevoir le nom d'utilisateur du client
+            # Receive username from the client
             username = secure_socket.recv(1024).decode()
             if username:
-                # Ajouter l'utilisateur à la base de données des utilisateurs connectés
+                # Add user to the connected users database
                 self.add_connected_user(username)
 
-                # Envoyer la liste des utilisateurs connectés à tous les clients
+                # Send the list of connected users to all clients
                 self.send_connected_users()
 
-                # Attendre les autres messages ou commandes du client si nécessaire
+                # Wait for further messages or commands from the client
                 while True:
                     data = secure_socket.recv(1024)
                     if not data:
                         break
-                    print(f'Received from {username}: {data.decode()}')
-
-                    # Exemple: Echo back to client
-                    secure_socket.sendall(data)
+                    message = data.decode()
+                    if message.startswith('PING:'):
+                        # Respond to ping
+                        print(f'Message received from {username} : PING')
+                        secure_socket.sendall(b'PONG:')
+                    elif message.startswith('MSG:'):
+                        print(f'Received from {username}: {message[4:]}')
+                        # Echo back to client (or handle the message accordingly)
+                        secure_socket.sendall(data)
         except Exception as e:
             print(f'Error with client {client_addr}: {e}')
 
         # Client disconnected
         self.remove_client(client_addr)
-        self.send_connected_users()  # Mise à jour de la liste après déconnexion
+        self.send_connected_users()  # Update the list after disconnection
         print(f'Client {client_addr} disconnected')
 
     def add_connected_user(self, username):
@@ -93,7 +98,7 @@ class ChatServer:
         if client_addr in self.client_sockets:
             del self.client_sockets[client_addr]
 
-        # Supprimer l'utilisateur déconnecté de la base de données
+        # Remove the disconnected user from the database
         with sqlite3.connect('chat_app.db') as conn:
             cursor = conn.cursor()
             cursor.execute('DELETE FROM connected_users WHERE username = ?', (client_addr[0],))
@@ -109,7 +114,7 @@ class ChatServer:
         connected_users_str = ','.join(self.get_connected_users())
         for client_addr, secure_socket in self.client_sockets.items():
             try:
-                secure_socket.sendall(connected_users_str.encode())
+                secure_socket.sendall(f'CONNECTED_USERS:{connected_users_str}'.encode())
             except Exception as e:
                 print(f'Error sending connected users to {client_addr}: {e}')
 
@@ -117,26 +122,26 @@ class ChatServer:
         while True:
             connected_users = self.get_connected_users()
             print(f"Connected Users: {', '.join(connected_users)}")
-            self.send_connected_users()  # Envoyer la liste des utilisateurs connectés
+            self.send_connected_users()  # Send the list of connected users
             time.sleep(20)
 
     def send_ping_to_clients(self):
         while True:
-            # Liste des clients à supprimer
+            # List of clients to remove
             clients_to_remove = []
 
             for client_addr, secure_socket in self.client_sockets.items():
                 try:
-                    secure_socket.sendall(b'ping')
+                    secure_socket.sendall(b'PING:')
                     response = secure_socket.recv(1024)
-                    if response.decode() != 'pong':
+                    if response.decode() != 'PONG:':
                         print(f'Client {client_addr} did not respond correctly to ping')
                         clients_to_remove.append(client_addr)
                 except Exception as e:
                     print(f'Error sending ping to {client_addr}: {e}')
                     clients_to_remove.append(client_addr)
 
-            # Supprimer les clients qui n'ont pas répondu au ping correctement
+            # Remove clients that did not respond correctly to the ping
             for client_addr in clients_to_remove:
                 self.remove_client(client_addr)
 
