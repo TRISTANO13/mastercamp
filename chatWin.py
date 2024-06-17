@@ -48,13 +48,9 @@ class ChatWindow:
                 if not data:
                     break
                 message = data.decode()
-                if message.startswith('CONNECTED_USERS:'):
-                    connected_users = message[len('CONNECTED_USERS:'):].split(',')
-                    self.msg_list.insert(tk.END, f"Connected users: {', '.join(connected_users)}")
-                elif message.startswith('PONG:'):
+                if message.startswith('PONG:'):
                     # Handle PONG response
                     print("Received PONG from server")
-                    self.secure_socket.sendall(b'PONG:')
                 elif message.startswith('MSG:'):
                     self.msg_list.insert(tk.END, f"{self.user}: {message[len('MSG:'):]}")
                 else:

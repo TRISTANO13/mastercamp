@@ -66,17 +66,16 @@ class ChatServer:
                 # Send the list of connected users to all clients
                 self.send_connected_users()
 
+                # Start a thread to handle pings for this client
+                Thread(target=self.handle_ping, args=(secure_socket, username)).start()
+
                 # Wait for further messages or commands from the client
                 while True:
                     data = secure_socket.recv(1024)
                     if not data:
                         break
                     message = data.decode()
-                    if message.startswith('PING:'):
-                        # Respond to ping
-                        print(f'Message received from {username} : PING')
-                        secure_socket.sendall(b'PONG:')
-                    elif message.startswith('MSG:'):
+                    if message.startswith('MSG:'):
                         print(f'Received from {username}: {message[4:]}')
                         # Echo back to client (or handle the message accordingly)
                         secure_socket.sendall(data)
@@ -87,6 +86,8 @@ class ChatServer:
         self.remove_client(client_addr)
         self.send_connected_users()  # Update the list after disconnection
         print(f'Client {client_addr} disconnected')
+
+    
 
     def add_connected_user(self, username):
         with sqlite3.connect('chat_app.db') as conn:
@@ -137,6 +138,8 @@ class ChatServer:
                     if response.decode() != 'PONG:':
                         print(f'Client {client_addr} did not respond correctly to ping')
                         clients_to_remove.append(client_addr)
+                    elif response.decode() == 'PONG:':
+                        print(f'Client {client_addr} respond correctly to ping')
                 except Exception as e:
                     print(f'Error sending ping to {client_addr}: {e}')
                     clients_to_remove.append(client_addr)
@@ -146,6 +149,7 @@ class ChatServer:
                 self.remove_client(client_addr)
 
             time.sleep(10)
+            
 
 if __name__ == "__main__":
     server = ChatServer()

@@ -65,5 +65,6 @@ class LoginWindow:
             messagebox.showerror("Registration Failed", "Username already exists")
 
     def open_main_window(self):
+        username = self.entry_username.get()
         main_window = tk.Toplevel(self.root)
-        MainWindow(main_window)
+        MainWindow(main_window,username)

@@ -6,9 +6,9 @@ from threading import Thread
 from chatWin import*
 
 class MainWindow:
-    def __init__(self, root):
+    def __init__(self, root,user):
         self.root = root
-        self.root.title("User Chat Application")
+        self.root.title(f"User Chat Application {user}")
 
         self.user_listbox = Listbox(root)
         self.user_listbox.pack(fill=tk.BOTH, expand=True)
