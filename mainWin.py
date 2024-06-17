@@ -3,6 +3,7 @@ from tkinter import Listbox, messagebox
 import socket
 import ssl
 from threading import Thread
+from chatWin import ChatWindow  # Assurez-vous d'importer correctement ChatWindow
 
 class MainWindow:
     def __init__(self, root):
@@ -57,7 +58,7 @@ class MainWindow:
         try:
             selected_user = self.user_listbox.get(self.user_listbox.curselection())
             if selected_user in self.connected_users:
-                ChatWindow(self.root, selected_user)
+                ChatWindow(self.root, selected_user)  # Utilisation de ChatWindow ici
             else:
                 messagebox.showerror("Error", "Selected user is not currently connected.")
         except tk.TclError:

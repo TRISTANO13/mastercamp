@@ -22,6 +22,21 @@ class ChatServer:
 
         self.create_tables()  # Création des tables de la base de données SQLite
         self.reset_connected_users()  # Réinitialisation des utilisateurs connectés
+    
+    def create_private_room(self, room_name):
+        if room_name not in self.chatrooms:
+            self.chatrooms[room_name] = set()
+
+    def join_private_room(self, room_name, username):
+        if room_name in self.chatrooms:
+            self.chatrooms[room_name].add(username)
+            return True
+        return False
+
+    def leave_private_room(self, room_name, username):
+        if room_name in self.chatrooms and username in self.chatrooms[room_name]:
+            self.chatrooms[room_name].remove(username)
+
 
     def create_tables(self):
         with sqlite3.connect('chat_app.db') as conn:
@@ -83,7 +98,40 @@ class ChatServer:
         self.send_connected_users()  # Mise à jour de la liste après déconnexion
         print(f'Client {client_addr} disconnected')
 
-    def add_connected_user(self, username):
+    def handle_client(self, secure_socket, client_addr):
+        try:
+            username = secure_socket.recv(1024).decode()
+            if username:
+                while True:
+                    data = secure_socket.recv(1024)
+                    if not data:
+                        break
+                    if data.startswith(b'/join'):
+                        room_name = data.split()[1].decode()
+                        if self.join_private_room(room_name, username):
+                            secure_socket.sendall(f"Joined room {room_name}".encode())
+                        else:
+                            secure_socket.sendall(f"Failed to join room {room_name}".encode())
+                    elif data.startswith(b'/leave'):
+                        room_name = data.split()[1].decode()
+                        self.leave_private_room(room_name, username)
+                        secure_socket.sendall(f"Left room {room_name}".encode())
+                    elif data.startswith(b'/'):
+                        # Commande spéciale pour les messages privés
+                        self.handle_private_message(username, data)
+                    else:
+                        # Messages normaux dans les rooms privées
+                        self.broadcast_to_private_room(username, data)
+        except Exception as e:
+            print(f'Error with client {client_addr}: {e}')
+
+    def broadcast_to_private_room(self, sender, data):
+        room_name, message = data.split(b':', 1)
+        if room_name in self.chatrooms:
+            for user in self.chatrooms[room_name]:
+                if user in self.client_sockets and user != sender:
+                    self.client_sockets[user].sendall(f"{sender}: {message.decode()}".encode())
+
         with sqlite3.connect('chat_app.db') as conn:
             cursor = conn.cursor()
             cursor.execute('INSERT OR IGNORE INTO connected_users (username) VALUES (?)', (username,))
