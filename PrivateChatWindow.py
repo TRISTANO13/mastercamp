@@ -39,3 +39,4 @@ class PrivateChatWindow:
         message = self.entry_field.get()
         self.entry_field.delete(0, tk.END)
         self.secure_socket.sendall(f"/private {self.room_name}: {message}".encode())
+        
