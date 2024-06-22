@@ -1,3 +1,5 @@
+# database.py
+
 import sqlite3
 import hashlib
 
@@ -100,7 +102,9 @@ def reset_connected_users():
         cursor.execute('DELETE FROM connected_users')
         conn.commit()
 
-# Initialisation des tables lors de l'exécution directe de ce script
-if __name__ == "__main__":
-    create_tables()
-    reset_connected_users()
+# Ajout d'une fonction pour vérifier l'existence d'un utilisateur
+def check_user_exists(username):
+    with create_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
+        return cursor.fetchone() is not None

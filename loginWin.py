@@ -1,6 +1,8 @@
+# loginWin.py
+
 import tkinter as tk
 from tkinter import messagebox
-from database import check_credentials, add_connected_user
+from database import check_credentials, add_connected_user, add_user, check_user_exists
 
 class LoginWindow(tk.Frame):
     def __init__(self, parent):
@@ -25,6 +27,9 @@ class LoginWindow(tk.Frame):
         self.login_button = tk.Button(self, text="Login", command=self.login)
         self.login_button.pack(pady=10)
 
+        self.register_button = tk.Button(self, text="Register", command=self.register_user)
+        self.register_button.pack(pady=10)
+
     def login(self):
         username = self.entry_username.get()
         password = self.entry_password.get()
@@ -34,5 +39,19 @@ class LoginWindow(tk.Frame):
                 self.parent.login_handler(username)
             else:
                 messagebox.showerror("Login Failed", "Invalid credentials")
+        else:
+            messagebox.showwarning("Input Error", "Please enter both username and password")
+
+    def register_user(self):
+        username = self.entry_username.get()
+        password = self.entry_password.get()
+        if username and password:
+            if not check_user_exists(username):
+                if add_user(username, password):
+                    messagebox.showinfo("Registration", "User registered successfully!")
+                else:
+                    messagebox.showerror("Registration Failed", "Failed to register user")
+            else:
+                messagebox.showwarning("Registration Failed", f"User '{username}' already exists. Please choose another username.")
         else:
             messagebox.showwarning("Input Error", "Please enter both username and password")
