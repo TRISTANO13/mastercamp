@@ -25,18 +25,26 @@ class PrivateChatWindow:
 
         Thread(target=self.receive_messages).start()
 
+    def insert_message(self, message, sender):
+        if sender == "You":
+            self.msg_list.insert(tk.END, f"You: {message}")
+            self.msg_list.itemconfig(tk.END, {'fg': 'blue'})
+        else:
+            self.msg_list.insert(tk.END, f"{sender}: {message}")
+            self.msg_list.itemconfig(tk.END, {'fg': 'green'})
+
     def receive_messages(self):
         while True:
             try:
                 data = self.secure_socket.recv(1024)
                 if not data:
                     break
-                self.msg_list.insert(tk.END, data.decode())
+                self.insert_message(data.decode(), "Other")
             except:
                 break
 
     def send_message(self, event=None):
         message = self.entry_field.get()
         self.entry_field.delete(0, tk.END)
+        self.insert_message(message, "You")
         self.secure_socket.sendall(f"/private {self.room_name}: {message}".encode())
-        

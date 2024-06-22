@@ -18,26 +18,12 @@ class ChatServer:
         self.server_socket.listen(5)
         print(f'Server is listening on {SERVER_HOST}:{SERVER_PORT}')
 
-        self.client_sockets = {}  # Dictionnaire pour suivre les connexions des clients
-        self.usernames = {}  # Dictionnaire pour suivre les noms d'utilisateurs des clients
-        self.chatrooms = {}  # Dictionnaire pour les salles de chat privées
+        self.client_sockets = {}
+        self.usernames = {}
+        self.chatrooms = {}
 
-        self.create_tables()  # Création des tables de la base de données SQLite
-        self.reset_connected_users()  # Réinitialisation des utilisateurs connectés
-
-    def create_private_room(self, room_name):
-        if room_name not in self.chatrooms:
-            self.chatrooms[room_name] = set()
-
-    def join_private_room(self, room_name, username):
-        if room_name in self.chatrooms:
-            self.chatrooms[room_name].add(username)
-            return True
-        return False
-
-    def leave_private_room(self, room_name, username):
-        if room_name in self.chatrooms and username in self.chatrooms[room_name]:
-            self.chatrooms[room_name].remove(username)
+        self.create_tables()
+        self.reset_connected_users()
 
     def create_tables(self):
         with sqlite3.connect('chat_app.db') as conn:
@@ -46,20 +32,23 @@ class ChatServer:
                                 id INTEGER PRIMARY KEY,
                                 username TEXT UNIQUE NOT NULL
                               )''')
+            cursor.execute('''CREATE TABLE IF NOT EXISTS messages (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                sender TEXT NOT NULL,
+                                recipient TEXT NOT NULL,
+                                message TEXT NOT NULL,
+                                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                              )''')
             conn.commit()
 
     def reset_connected_users(self):
-        # Effacer tous les utilisateurs connectés au démarrage du serveur
         with sqlite3.connect('chat_app.db') as conn:
             cursor = conn.cursor()
             cursor.execute('DELETE FROM connected_users')
             conn.commit()
 
     def start(self):
-        # Démarrer le thread pour afficher les utilisateurs connectés toutes les 20 secondes
         Thread(target=self.print_connected_users_periodically).start()
-
-        # Démarrer le thread pour envoyer des pings aux clients toutes les 10 secondes
         Thread(target=self.send_ping_to_clients).start()
 
         while True:
@@ -68,22 +57,16 @@ class ChatServer:
             self.client_sockets[client_addr] = secure_socket
             print(f'Connection established with {client_addr}')
 
-            # Démarrer un thread pour gérer le client
             Thread(target=self.handle_client, args=(secure_socket, client_addr)).start()
 
     def handle_client(self, secure_socket, client_addr):
         try:
-            # Recevoir le nom d'utilisateur du client
             username = secure_socket.recv(1024).decode()
             if username:
-                self.usernames[client_addr] = username  # Stocker le nom d'utilisateur
-                # Ajouter l'utilisateur à la base de données des utilisateurs connectés
+                self.usernames[client_addr] = username
                 self.add_connected_user(username)
-
-                # Envoyer la liste des utilisateurs connectés à tous les clients
                 self.send_connected_users()
 
-                # Attendre les autres messages ou commandes du client si nécessaire
                 while True:
                     data = secure_socket.recv(1024)
                     if not data:
@@ -99,17 +82,14 @@ class ChatServer:
                         self.leave_private_room(room_name, username)
                         secure_socket.sendall(f"Left room {room_name}".encode())
                     elif data.startswith(b'/'):
-                        # Commande spéciale pour les messages privés
                         self.handle_private_message(username, data)
                     else:
-                        # Messages normaux dans les rooms privées
                         self.broadcast_to_private_room(username, data)
         except Exception as e:
             print(f'Error with client {client_addr}: {e}')
 
-        # Client disconnected
         self.remove_client(client_addr)
-        self.send_connected_users()  # Mise à jour de la liste après déconnexion
+        self.send_connected_users()
         print(f'Client {client_addr} disconnected')
 
     def add_connected_user(self, username):
@@ -118,78 +98,82 @@ class ChatServer:
             cursor.execute('INSERT OR IGNORE INTO connected_users (username) VALUES (?)', (username,))
             conn.commit()
 
-    def broadcast_to_private_room(self, sender, data):
-        room_name, message = data.split(b':', 1)
-        room_name = room_name.decode()
-        if room_name in self.chatrooms:
-            for user in self.chatrooms[room_name]:
-                if user in self.usernames.values() and user != sender:
-                    client_addr = self.get_client_addr_by_username(user)
-                    if client_addr:
-                        self.client_sockets[client_addr].sendall(f"{sender}: {message.decode()}".encode())
-
-    def get_client_addr_by_username(self, username):
-        for addr, user in self.usernames.items():
-            if user == username:
-                return addr
-        return None
-
-    def remove_client(self, client_addr):
-        if client_addr in self.client_sockets:
-            self.client_sockets[client_addr].close()
-            del self.client_sockets[client_addr]
-        if client_addr in self.usernames:
-            username = self.usernames[client_addr]
-            del self.usernames[client_addr]
-            # Supprimer l'utilisateur déconnecté de la base de données
-            with sqlite3.connect('chat_app.db') as conn:
-                cursor = conn.cursor()
-                cursor.execute('DELETE FROM connected_users WHERE username = ?', (username,))
-                conn.commit()
+    def send_connected_users(self):
+        connected_users = self.get_connected_users()
+        for secure_socket in self.client_sockets.values():
+            secure_socket.sendall(f'Connected users: {connected_users}'.encode())
 
     def get_connected_users(self):
         with sqlite3.connect('chat_app.db') as conn:
             cursor = conn.cursor()
             cursor.execute('SELECT username FROM connected_users')
-            return [row[0] for row in cursor.fetchall()]
+            users = [row[0] for row in cursor.fetchall()]
+        return users
 
-    def send_connected_users(self):
-        connected_users_str = ','.join(self.get_connected_users())
-        for client_addr, secure_socket in self.client_sockets.items():
-            try:
-                secure_socket.sendall(connected_users_str.encode())
-            except Exception as e:
-                print(f'Error sending connected users to {client_addr}: {e}')
+    def join_private_room(self, room_name, username):
+        if room_name not in self.chatrooms:
+            self.chatrooms[room_name] = set()
+        self.chatrooms[room_name].add(username)
+        return True
+
+    def leave_private_room(self, room_name, username):
+        if room_name in self.chatrooms:
+            self.chatrooms[room_name].remove(username)
+            if not self.chatrooms[room_name]:
+                del self.chatrooms[room_name]
+
+    def handle_private_message(self, username, data):
+        parts = data.split()
+        recipient = parts[0][1:].decode()
+        message = b' '.join(parts[1:]).decode()
+
+        with sqlite3.connect('chat_app.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO messages (sender, recipient, message) VALUES (?, ?, ?)',
+                           (username, recipient, message))
+            conn.commit()
+
+        for secure_socket in self.client_sockets.values():
+            secure_socket.sendall(f"{username} to {recipient}: {message}".encode())
+
+    def broadcast_to_private_room(self, username, data):
+        message = data.decode()
+        with sqlite3.connect('chat_app.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO messages (sender, recipient, message) VALUES (?, ?, ?)',
+                           (username, 'all', message))
+            conn.commit()
+
+        for secure_socket in self.client_sockets.values():
+            secure_socket.sendall(f"{username}: {message}".encode())
+
+    def remove_client(self, client_addr):
+        username = self.usernames.pop(client_addr, None)
+        if username:
+            self.remove_connected_user(username)
+        self.client_sockets.pop(client_addr, None)
+
+    def remove_connected_user(self, username):
+        with sqlite3.connect('chat_app.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM connected_users WHERE username = ?', (username,))
+            conn.commit()
+
+    def send_ping_to_clients(self):
+        while True:
+            time.sleep(10)
+            for secure_socket in self.client_sockets.values():
+                try:
+                    secure_socket.sendall(b'/ping')
+                except Exception as e:
+                    print(f"Error sending ping: {e}")
 
     def print_connected_users_periodically(self):
         while True:
             connected_users = self.get_connected_users()
-            print(f"Connected Users: {', '.join(connected_users)}")
-            self.send_connected_users()  # Envoyer la liste des utilisateurs connectés
-            time.sleep(20)
-
-    def send_ping_to_clients(self):
-        while True:
-            # Liste des clients à supprimer
-            clients_to_remove = []
-
-            for client_addr, secure_socket in self.client_sockets.items():
-                try:
-                    secure_socket.sendall(b'ping')
-                    response = secure_socket.recv(1024)
-                    if response.decode() != 'pong':
-                        print(f'Client {client_addr} did not respond correctly to ping')
-                        clients_to_remove.append(client_addr)
-                except Exception as e:
-                    print(f'Error sending ping to {client_addr}: {e}')
-                    clients_to_remove.append(client_addr)
-
-            # Supprimer les clients qui n'ont pas répondu au ping correctement
-            for client_addr in clients_to_remove:
-                self.remove_client(client_addr)
-
+            print(f"Connected users: {connected_users}")
             time.sleep(10)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     server = ChatServer()
     server.start()
