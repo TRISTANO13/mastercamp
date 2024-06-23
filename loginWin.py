@@ -1,50 +1,57 @@
+# loginWin.py
+
 import tkinter as tk
 from tkinter import messagebox
-from mainWin import MainWindow
-from database import authenticate_user, add_user
-import sqlite3
+from database import check_credentials, add_connected_user, add_user, check_user_exists
 
-class LoginWindow:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Login")
-        
-        self.label_username = tk.Label(root, text="Username")
-        self.label_username.pack()
-        self.entry_username = tk.Entry(root)
-        self.entry_username.pack()
+class LoginWindow(tk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent.root)
+        self.parent = parent
+        self.pack()
+        self.create_widgets()
 
-        self.label_password = tk.Label(root, text="Password")
-        self.label_password.pack()
-        self.entry_password = tk.Entry(root, show='*')
-        self.entry_password.pack()
+    def create_widgets(self):
+        self.label_username = tk.Label(self, text="Username:")
+        self.label_username.pack(pady=10)
 
-        self.login_button = tk.Button(root, text="Login", command=self.login)
-        self.login_button.pack()
+        self.entry_username = tk.Entry(self)
+        self.entry_username.pack(pady=10)
 
-        self.register_button = tk.Button(root, text="Register", command=self.register)
-        self.register_button.pack()
+        self.label_password = tk.Label(self, text="Password:")
+        self.label_password.pack(pady=10)
+
+        self.entry_password = tk.Entry(self, show="*")
+        self.entry_password.pack(pady=10)
+
+        self.login_button = tk.Button(self, text="Login", command=self.login)
+        self.login_button.pack(pady=10)
+
+        self.register_button = tk.Button(self, text="Register", command=self.register_user)
+        self.register_button.pack(pady=10)
 
     def login(self):
         username = self.entry_username.get()
         password = self.entry_password.get()
-
-        if (username == 'admin' and password == '1234') or authenticate_user(username, password):
-            self.root.withdraw()  # Ferme la fenêtre de connexion
-            self.open_main_window()
+        if username and password:
+            if check_credentials(username, password):
+                add_connected_user(username)
+                self.parent.login_handler(username)
+            else:
+                messagebox.showerror("Login Failed", "Invalid credentials")
         else:
-            messagebox.showerror("Login Failed", "Invalid username or password")
+            messagebox.showwarning("Input Error", "Please enter both username and password")
 
-    def register(self):
+    def register_user(self):
         username = self.entry_username.get()
         password = self.entry_password.get()
-
-        try:
-            add_user(username, password)
-            messagebox.showinfo("Registration Success", "User registered successfully")
-        except sqlite3.IntegrityError:
-            messagebox.showerror("Registration Failed", "Username already exists")
-
-    def open_main_window(self):
-        main_window = tk.Toplevel(self.root)
-        MainWindow(main_window)
+        if username and password:
+            if not check_user_exists(username):
+                if add_user(username, password):
+                    messagebox.showinfo("Registration", "User registered successfully!")
+                else:
+                    messagebox.showerror("Registration Failed", "Failed to register user")
+            else:
+                messagebox.showwarning("Registration Failed", f"User '{username}' already exists. Please choose another username.")
+        else:
+            messagebox.showwarning("Input Error", "Please enter both username and password")

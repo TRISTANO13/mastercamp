@@ -1,29 +1,44 @@
 import socket
 import ssl
-from threading import Thread
+import threading
 
-def receive_messages(secure_socket):
-    while True:
-        try:
-            data = secure_socket.recv(1024)
-            if not data:
+class ChatClient:
+    def __init__(self, host='localhost', port=8888, username=''):
+        self.host = host
+        self.port = port
+        self.username = username
+        self.context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        self.context.load_verify_locations('cert.pem')
+        self.client_socket = None
+
+    def connect(self):
+        self.client_socket = self.context.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM), server_hostname=self.host)
+        self.client_socket.connect((self.host, self.port))
+        self.client_socket.sendall(self.username.encode())
+        threading.Thread(target=self.receive_messages).start()
+
+    def receive_messages(self):
+        while True:
+            try:
+                message = self.client_socket.recv(1024).decode()
+                if message:
+                    print(message)
+            except Exception as e:
+                print(f"Error receiving message: {e}")
                 break
-            print(f"Reçu: {data.decode()}")
-        except:
-            break
 
-def start_client():
-    context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-    context.check_hostname = False
-    context.verify_mode = ssl.CERT_NONE
+    def send_message(self, message):
+        if self.client_socket:
+            try:
+                self.client_socket.sendall(message.encode())
+            except Exception as e:
+                print(f"Error sending message: {e}")
 
-    with socket.create_connection(('localhost', 8888)) as sock:
-        with context.wrap_socket(sock, server_hostname='localhost') as secure_socket:
-            print(secure_socket.version())
-            Thread(target=receive_messages, args=(secure_socket,)).start()
-            while True:
-                message = input("Vous: ")
-                secure_socket.sendall(message.encode())
+if __name__ == '__main__':
+    username = input("Enter your username: ")
+    client = ChatClient(username=username)
+    client.connect()
 
-if __name__ == "__main__":
-    start_client()
+    while True:
+        message = input()
+        client.send_message(message)
