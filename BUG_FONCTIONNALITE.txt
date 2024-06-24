@@ -1,0 +1,14 @@
+Test, bug et remarque :
+
+- Empecher de pouvoir écrire dans la zone de tchat et seulement dans la zone d'écriture
+- Permettre d'envoyer des messages avec "ENTER"
+- 
+
+
+
+Ajout de fonctionnalité :
+ 
+- Ajouter A2F
+- Logs des activités
+- Ajout d'admin
+- Hash et sel des MDP
