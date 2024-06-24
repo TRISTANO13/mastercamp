@@ -108,3 +108,10 @@ def check_user_exists(username):
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
         return cursor.fetchone() is not None
+
+def delete_user(username):
+    with create_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM users WHERE username = ?', (username,))
+        conn.commit()
+        

@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from database import get_connected_users
 from chatRoomWin import ChatRoomWindow
+from database import delete_user
 
 class UserSelectWindow(tk.Frame):
     def __init__(self, parent, username):
@@ -12,15 +13,19 @@ class UserSelectWindow(tk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        self.label = tk.Label(self, text="Select User to Chat:")
-        self.label.pack(pady=10)
+            self.label = tk.Label(self, text="Select User to Chat:")
+            self.label.pack(pady=10)
 
-        self.listbox = tk.Listbox(self)
-        self.listbox.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
-        self.load_users()
+            self.listbox = tk.Listbox(self)
+            self.listbox.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+            self.load_users()
 
-        self.chat_button = tk.Button(self, text="Chat", command=self.open_chat)
-        self.chat_button.pack(pady=10)
+            self.chat_button = tk.Button(self, text="Chat", command=self.open_chat)
+            self.chat_button.pack(pady=10)
+            if self.username == 'admin':
+                self.chat_button = tk.Button(self, text="Delete", command=self.deleteUser)
+                self.chat_button.pack(pady=10)
+            
 
     def load_users(self):
         users = get_connected_users()
@@ -36,3 +41,11 @@ class UserSelectWindow(tk.Frame):
             self.chat_window.pack(fill="both", expand=True)
         else:
             messagebox.showwarning("Selection Error", "Please select a user to chat with")
+
+    def deleteUser(self):
+        print('hello')
+        selected_user = self.listbox.get(tk.ACTIVE)
+        if selected_user:
+            delete_user(selected_user)
+            print(selected_user, 'has been delete')
+        
