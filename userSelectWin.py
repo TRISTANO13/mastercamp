@@ -22,17 +22,20 @@ class UserSelectWindow(tk.Frame):
 
             self.chat_button = tk.Button(self, text="Chat", command=self.open_chat)
             self.chat_button.pack(pady=10)
+            self.chat_button = tk.Button(self, text="Refresh", command=self.load_users)
+            self.chat_button.pack(pady=10)
             if self.username == 'admin':
                 self.chat_button = tk.Button(self, text="Delete", command=self.deleteUser)
                 self.chat_button.pack(pady=10)
             
 
     def load_users(self):
+        self.listbox.delete(0, tk.END)  # Clear the listbox
         users = get_connected_users()
         for user in users:
             if user != self.username:
                 self.listbox.insert(tk.END, user)
-
+                
     def open_chat(self):
         selected_user = self.listbox.get(tk.ACTIVE)
         if selected_user:
