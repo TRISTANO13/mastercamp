@@ -1,5 +1,5 @@
 import tkinter as tk
-from database import add_message, get_messages
+from src.database import add_message, get_messages
 
 class ChatRoomWindow(tk.Frame):
     def __init__(self, parent, username, recipient):
@@ -49,6 +49,6 @@ class ChatRoomWindow(tk.Frame):
 
     def back_to_user_select(self):
         self.destroy()  # Détruit la fenêtre actuelle
-        from userSelectWin import UserSelectWindow  # Import dynamique pour éviter une boucle d'import
+        from interface.userSelectWin import UserSelectWindow  # Import dynamique pour éviter une boucle d'import
         user_select_window = UserSelectWindow(self.parent, self.username)
         user_select_window.pack(fill="both", expand=True)

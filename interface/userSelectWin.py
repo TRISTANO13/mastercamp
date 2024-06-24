@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
-from database import get_connected_users
-from chatRoomWin import ChatRoomWindow
+from src.database import get_connected_users
+from interface.chatRoomWin import ChatRoomWindow
 
 class UserSelectWindow(tk.Frame):
     def __init__(self, parent, username):

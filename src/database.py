@@ -3,7 +3,7 @@
 import sqlite3
 import hashlib
 
-DATABASE_NAME = 'chat_app.db'
+DATABASE_NAME = './db/chat_app.db'
 
 def create_connection():
     return sqlite3.connect(DATABASE_NAME)

@@ -2,7 +2,7 @@
 
 import tkinter as tk
 from tkinter import messagebox
-from database import check_credentials, add_connected_user, add_user, check_user_exists
+from src.database import check_credentials, add_connected_user, add_user, check_user_exists
 
 class LoginWindow(tk.Frame):
     def __init__(self, parent):
