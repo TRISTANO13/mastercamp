@@ -1,6 +1,6 @@
 import tkinter as tk
-from loginWin import LoginWindow
-from userSelectWin import UserSelectWindow
+from interface.loginWin import LoginWindow
+from interface.userSelectWin import UserSelectWindow
 
 class ChatApp:
     def __init__(self):
