@@ -87,7 +87,7 @@ def add_connected_user(username):
 def get_connected_users():
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT username FROM connected_users')
+        cursor.execute('SELECT username FROM users')
         return [row[0] for row in cursor.fetchall()]
 
 def remove_connected_user(username):
@@ -114,4 +114,11 @@ def delete_user(username):
         cursor = conn.cursor()
         cursor.execute('DELETE FROM users WHERE username = ?', (username,))
         conn.commit()
+        
+def search_user(pattern):
+    pattern = f"%{pattern}%"
+    with create_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT username FROM users WHERE username LIKE ?', (pattern,))
+        return [row[0] for row in cursor.fetchall()]
         

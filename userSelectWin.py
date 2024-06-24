@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from database import get_connected_users
 from chatRoomWin import ChatRoomWindow
-from database import delete_user
+from database import delete_user,search_user
 
 class UserSelectWindow(tk.Frame):
     def __init__(self, parent, username):
@@ -21,6 +21,11 @@ class UserSelectWindow(tk.Frame):
             self.load_users()
 
             self.chat_button = tk.Button(self, text="Chat", command=self.open_chat)
+            self.chat_button.pack(pady=10)
+            
+            self.entry_research = tk.Entry(self)
+            self.entry_research.pack(pady=10)
+            self.chat_button = tk.Button(self, text="Research", command=self.research_user)
             self.chat_button.pack(pady=10)
             self.chat_button = tk.Button(self, text="Refresh", command=self.load_users)
             self.chat_button.pack(pady=10)
@@ -52,3 +57,10 @@ class UserSelectWindow(tk.Frame):
             delete_user(selected_user)
             print(selected_user, 'has been delete')
         
+    def research_user(self):
+        self.listbox.delete(0, tk.END) 
+        research = self.entry_research.get()
+        userre = search_user(research)
+        for user in userre:
+            if user != self.username:
+                self.listbox.insert(tk.END, user)

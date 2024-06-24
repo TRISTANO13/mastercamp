@@ -88,9 +88,15 @@ class ChatServer:
         except Exception as e:
             print(f'Error with client {client_addr}: {e}')
 
+        self.notify_disconnection(client_addr)
         self.remove_client(client_addr)
         self.send_connected_users()
         print(f'Client {client_addr} disconnected')
+
+    def notify_disconnection(self, client_addr):
+        if client_addr in self.usernames:
+            username = self.usernames[client_addr]
+            print(f"User {username} has disconnected")
 
     def add_connected_user(self, username):
         with sqlite3.connect('chat_app.db') as conn:
