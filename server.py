@@ -50,6 +50,7 @@ class ChatServer:
         while True:
             client_socket, client_addr = self.server_socket.accept()
             secure_socket = self.context.wrap_socket(client_socket, server_side=True)
+            self.client_sockets[client_addr] = secure_socket
             Thread(target=self.handle_client, args=(secure_socket, client_addr)).start()
 
     def handle_client(self, secure_socket, client_addr):
@@ -60,20 +61,36 @@ class ChatServer:
             self.send_connected_users()
 
             while True:
-                data = secure_socket.recv(1024)
-                if not data:
+                try:
+                    data = secure_socket.recv(1024)
+                    if not data:
+                        break
+                    self.handle_message(data.decode(), client_addr)
+                except Exception as e:
+                    print(f"Error receiving data from client {client_addr}: {e}")
                     break
-                self.handle_message(data.decode(), client_addr)
 
         self.remove_client(client_addr)
         self.send_connected_users()
 
     def handle_message(self, message, client_addr):
-        parts = message.split(':', 1)
-        if len(parts) == 2:
-            sender = parts[0].strip()
-            content = parts[1].strip()
-            self.broadcast_message(f"{sender}: {content}", sender)
+        if message.startswith('/get_users'):
+            print(f"Received /get_users from {self.usernames[client_addr]}")
+            self.send_connected_users_to_client(client_addr)
+        else:
+            parts = message.split(':', 1)
+            if len(parts) == 2:
+                sender = parts[0].strip()
+                content = parts[1].strip()
+                self.broadcast_message(f"{sender}: {content}", sender)
+
+    def send_connected_users_to_client(self, client_addr):
+        users = self.get_connected_users()
+        try:
+            print(f"Sending connected users to {self.usernames[client_addr]}: {users}")
+            self.client_sockets[client_addr].sendall(f"{','.join(users)}".encode())
+        except Exception as e:
+            print(f"Error sending users to client {client_addr}: {e}")
 
     def broadcast_message(self, message, sender):
         for addr, socket in self.client_sockets.items():
@@ -91,8 +108,11 @@ class ChatServer:
 
     def send_connected_users(self):
         users = self.get_connected_users()
-        for socket in self.client_sockets.values():
-            socket.sendall(f"/users:{','.join(users)}".encode())
+        for addr, socket in self.client_sockets.items():
+            try:
+                socket.sendall(f"/users:{','.join(users)}".encode())
+            except Exception as e:
+                print(f"Error sending connected users: {e}")
 
     def get_connected_users(self):
         with sqlite3.connect('chat_app.db') as conn:

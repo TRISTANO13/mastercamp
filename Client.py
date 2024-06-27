@@ -9,24 +9,27 @@ class ChatClient:
         self.username = username
         self.context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
         self.context.load_verify_locations('cert.pem')
+        self.context.check_hostname = False  # Ignore hostname check
+        self.context.verify_mode = ssl.CERT_NONE  # Disable certificate verification
         self.client_socket = None
 
     def connect(self):
-        self.client_socket = self.context.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM), server_hostname=self.host)
-        self.client_socket.connect((self.host, self.port))
-        self.client_socket.sendall(self.username.encode())
-        threading.Thread(target=self.receive_messages).start()
+        try:
+            print(f"Connecting to {self.host}:{self.port} as {self.username}")
+            self.client_socket = self.context.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM), server_hostname=self.host)
+            self.client_socket.connect((self.host, self.port))
+            self.client_socket.sendall(self.username.encode())
+            threading.Thread(target=self.receive_messages).start()
+            print("Connected and message receiving thread started")
+        except Exception as e:
+            print(f"Error connecting to server: {e}")
 
     def receive_messages(self):
         while True:
             try:
                 message = self.client_socket.recv(1024).decode()
                 if message:
-                    if message.startswith("/users:"):
-                        users = message.split(":", 1)[1]
-                        print(f"Connected users: {users}")
-                    else:
-                        print(message)
+                    print(message)
             except Exception as e:
                 print(f"Error receiving message: {e}")
                 break

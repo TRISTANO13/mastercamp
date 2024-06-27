@@ -15,6 +15,7 @@ class ChatRoomWindow(tk.Frame):
         Thread(target=self.receive_messages).start()
 
     def create_widgets(self):
+        print("Creating ChatRoomWindow widgets")
         self.text_area = tk.Text(self)
         self.text_area.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
 
@@ -26,6 +27,7 @@ class ChatRoomWindow(tk.Frame):
 
         self.back_button = tk.Button(self, text="Back to User Selection", command=self.back_to_user_select)
         self.back_button.pack(pady=10)
+        print("Widgets created")
 
     def receive_messages(self):
         while True:
