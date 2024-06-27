@@ -34,9 +34,12 @@ class LoginWindow(tk.Frame):
         username = self.entry_username.get()
         password = self.entry_password.get()
         if username and password:
+            print('1')
             if check_credentials(username, password):
                 add_connected_user(username)
+                print('2')
                 self.parent.login_handler(username)
+                print('3')
             else:
                 messagebox.showerror("Login Failed", "Invalid credentials")
         else:
