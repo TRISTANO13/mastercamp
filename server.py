@@ -59,6 +59,7 @@ class ChatServer:
             self.usernames[client_addr] = username
             self.add_connected_user(username)
             self.send_connected_users()
+            print(f'{username} connected')
 
             while True:
                 try:
