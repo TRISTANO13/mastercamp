@@ -7,7 +7,8 @@ class ChatClient:
         self.host = host
         self.port = port
         self.username = username
-        self.context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        self.context.minimum_version = ssl.TLSVersion.TLSv1_2  # Assurez-vous que la version minimale est TLS 1.2
         self.context.load_verify_locations('cert.pem')
         self.context.check_hostname = False  # Ignore hostname check
         self.context.verify_mode = ssl.CERT_NONE  # Disable certificate verification

@@ -9,7 +9,8 @@ SERVER_PORT = 8888
 
 class ChatServer:
     def __init__(self):
-        self.context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        self.context.minimum_version = ssl.TLSVersion.TLSv1_2  # Assurez-vous que la version minimale est TLS 1.2
         self.context.load_cert_chain(certfile='cert.pem', keyfile='key.pem')
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -54,22 +55,20 @@ class ChatServer:
             Thread(target=self.handle_client, args=(secure_socket, client_addr)).start()
 
     def handle_client(self, secure_socket, client_addr):
-        username = secure_socket.recv(1024).decode()
-        if username:
-            self.usernames[client_addr] = username
-            self.add_connected_user(username)
-            self.send_connected_users()
-            print(f'{username} connected')
+        try:
+            username = secure_socket.recv(1024).decode()
+            if username:
+                self.usernames[client_addr] = username
+                self.add_connected_user(username)
+                self.send_connected_users()
 
-            while True:
-                try:
+                while True:
                     data = secure_socket.recv(1024)
                     if not data:
                         break
                     self.handle_message(data.decode(), client_addr)
-                except Exception as e:
-                    print(f"Error receiving data from client {client_addr}: {e}")
-                    break
+        except Exception as e:
+            print(f"Error handling client {client_addr}: {e}")
 
         self.remove_client(client_addr)
         self.send_connected_users()
