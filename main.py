@@ -11,7 +11,7 @@ class ChatApp:
         self.main_window = None
 
     def setup_client(self, username):
-        from client import ChatClient  # Assurez-vous que le nom du fichier est correct
+        from client import ChatClient
         self.client = ChatClient(username=username)
         self.client.connect()
 

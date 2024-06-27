@@ -8,16 +8,16 @@ class ChatClient:
         self.port = port
         self.username = username
         self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        self.context.minimum_version = ssl.TLSVersion.TLSv1_2  # Assurez-vous que la version minimale est TLS 1.2
+        self.context.minimum_version = ssl.TLSVersion.TLSv1_2
         self.context.load_verify_locations('cert.pem')
-        self.context.check_hostname = False  # Ignore hostname check
-        self.context.verify_mode = ssl.CERT_NONE  # Disable certificate verification
+        self.context.check_hostname = False
+        self.context.verify_mode = ssl.CERT_NONE
         self.client_socket = None
 
     def connect(self):
         try:
             print(f"Connecting to {self.host}:{self.port} as {self.username}")
-            self.client_socket = self.context.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM), server_hostname=self.host)
+            self.client_socket = self.context.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM), server_hostname='localhost')
             self.client_socket.connect((self.host, self.port))
             self.client_socket.sendall(self.username.encode())
             threading.Thread(target=self.receive_messages).start()
@@ -41,12 +41,3 @@ class ChatClient:
                 self.client_socket.sendall(message.encode())
             except Exception as e:
                 print(f"Error sending message: {e}")
-
-if __name__ == '__main__':
-    username = input("Enter your username: ")
-    client = ChatClient(username=username)
-    client.connect()
-
-    while True:
-        message = input()
-        client.send_message(message)

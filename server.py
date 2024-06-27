@@ -10,7 +10,7 @@ SERVER_PORT = 8888
 class ChatServer:
     def __init__(self):
         self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        self.context.minimum_version = ssl.TLSVersion.TLSv1_2  # Assurez-vous que la version minimale est TLS 1.2
+        self.context.minimum_version = ssl.TLSVersion.TLSv1_2
         self.context.load_cert_chain(certfile='cert.pem', keyfile='key.pem')
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
