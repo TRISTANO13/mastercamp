@@ -1,66 +1,40 @@
 import tkinter as tk
 from tkinter import messagebox
-from database import get_connected_users
 from chatRoomWin import ChatRoomWindow
-from database import delete_user,search_user
 
 class UserSelectWindow(tk.Frame):
-    def __init__(self, parent, username):
+    def __init__(self, parent, username, client):
         super().__init__(parent)
         self.parent = parent
         self.username = username
+        self.client = client
         self.pack(fill="both", expand=True)
         self.create_widgets()
 
     def create_widgets(self):
-            self.label = tk.Label(self, text="Select User to Chat:")
-            self.label.pack(pady=10)
+        self.label = tk.Label(self, text="Select User to Chat:")
+        self.label.pack(pady=10)
 
-            self.listbox = tk.Listbox(self)
-            self.listbox.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
-            self.load_users()
+        self.listbox = tk.Listbox(self)
+        self.listbox.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+        self.load_users()
 
-            self.chat_button = tk.Button(self, text="Chat", command=self.open_chat)
-            self.chat_button.pack(pady=10)
-            
-            self.entry_research = tk.Entry(self)
-            self.entry_research.pack(pady=10)
-            self.chat_button = tk.Button(self, text="Research", command=self.research_user)
-            self.chat_button.pack(pady=10)
-            self.chat_button = tk.Button(self, text="Refresh", command=self.load_users)
-            self.chat_button.pack(pady=10)
-            if self.username == 'admin':
-                self.chat_button = tk.Button(self, text="Delete", command=self.deleteUser)
-                self.chat_button.pack(pady=10)
-            
+        self.chat_button = tk.Button(self, text="Chat", command=self.open_chat)
+        self.chat_button.pack(pady=10)
 
     def load_users(self):
-        self.listbox.delete(0, tk.END)  # Clear the listbox
-        users = get_connected_users()
+        self.client.send_message("/get_users")
+        self.listbox.delete(0, tk.END)
+        users = self.client.client_socket.recv(1024).decode().split(',')
         for user in users:
             if user != self.username:
                 self.listbox.insert(tk.END, user)
-                
+
     def open_chat(self):
         selected_user = self.listbox.get(tk.ACTIVE)
         if selected_user:
             self.destroy()
-            self.chat_window = ChatRoomWindow(self.parent, self.username, selected_user)
+            self.chat_window = ChatRoomWindow(self.parent, self.username, selected_user, self.client)
             self.chat_window.pack(fill="both", expand=True)
         else:
             messagebox.showwarning("Selection Error", "Please select a user to chat with")
-
-    def deleteUser(self):
-        print('hello')
-        selected_user = self.listbox.get(tk.ACTIVE)
-        if selected_user:
-            delete_user(selected_user)
-            print(selected_user, 'has been delete')
-        
-    def research_user(self):
-        self.listbox.delete(0, tk.END) 
-        research = self.entry_research.get()
-        userre = search_user(research)
-        for user in userre:
-            if user != self.username:
-                self.listbox.insert(tk.END, user)

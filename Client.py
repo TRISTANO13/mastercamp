@@ -22,7 +22,11 @@ class ChatClient:
             try:
                 message = self.client_socket.recv(1024).decode()
                 if message:
-                    print(message)
+                    if message.startswith("/users:"):
+                        users = message.split(":", 1)[1]
+                        print(f"Connected users: {users}")
+                    else:
+                        print(message)
             except Exception as e:
                 print(f"Error receiving message: {e}")
                 break
