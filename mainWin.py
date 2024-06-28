@@ -1,7 +1,6 @@
 # mainWin.py
 import tkinter as tk
 from tkinter import messagebox
-from tkinter import scrolledtext  # Importez scrolledtext pour la Scrollbar
 
 class MainWindow(tk.Frame):
     def __init__(self, parent, username, client):
@@ -16,7 +15,7 @@ class MainWindow(tk.Frame):
         self.label_info = tk.Label(self, text=f"Connected as {self.username}")
         self.label_info.pack(pady=10)
 
-        self.chat_history = scrolledtext.ScrolledText(self, height=20, width=50)
+        self.chat_history = tk.Text(self, height=20, width=50, state=tk.DISABLED)
         self.chat_history.pack(pady=10)
 
         self.text_entry = tk.Entry(self, width=50)
@@ -38,6 +37,8 @@ class MainWindow(tk.Frame):
             messagebox.showerror("Error", "Message cannot be empty")
 
     def display_message(self, message):
+        self.chat_history.config(state=tk.NORMAL)  # Activer l'édition temporairement pour ajouter du texte
         self.chat_history.insert(tk.END, message + "\n")
+        self.chat_history.config(state=tk.DISABLED)  # Désactiver l'édition après avoir ajouté du texte
         self.chat_history.see(tk.END)  # Scroll jusqu'à la fin du texte
 
