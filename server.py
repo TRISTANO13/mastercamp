@@ -34,10 +34,15 @@ class SSLServer:
                 }
 
                 jsonified_data = json.dumps(accept_login_obj)
-                print(jsonified_data)
-                #self.server_send(client_socket,jsonified_data)
+                self.server_send(client_socket,jsonified_data)
             else:
-                self.server_send(client_socket, "Utilisateur introuvable !")
+                reject_login_obj = {
+                    "action": "reject_login",
+                    "message":"Utilisateur ou mot de passe incorrect."
+                }
+
+                jsonified_data = json.dumps(reject_login_obj)
+                self.server_send(client_socket, jsonified_data)
         else:
             self.server_send(client_socket, "L'utilisateur et le mot de passe sont nécessaires.")
 

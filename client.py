@@ -2,6 +2,8 @@ import socket
 import ssl
 import json
 import threading
+import tkinter as tk
+from tkinter import messagebox
 
 class SSLClient:
     def __init__(self, host, port):
@@ -52,6 +54,21 @@ class SSLClient:
                 if not response:
                     print("Connexion fermée par le serveur")
                     break
+
+                dejsonified_data = None
+                    # print(decoded_data)
+                try:
+                    dejsonified_data = json.loads(response)  # Convertit le JSON en dictionnaire pour pouvoir l'utiliser avec Python
+                except:
+                    print(f"Info : Non JSON data received.")
+
+                # actions disponible pour le serveur 
+                if dejsonified_data and dejsonified_data.get('action') == "accept_login":
+                    messagebox.showinfo("Success", dejsonified_data.get('message'))
+                
+                if dejsonified_data and dejsonified_data.get('action') == "reject_login":
+                    messagebox.showerror("Error", dejsonified_data.get('message'))
+
                 print(f"Réponse du serveur: {response}")
             except ConnectionResetError:
                 print("Connexion réinitialisée par le serveur")
