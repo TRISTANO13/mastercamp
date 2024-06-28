@@ -51,7 +51,7 @@ class SSLClient:
                 response = self.receive()
                 if not response:
                     print("Connexion fermée par le serveur")
-                    breakpo
+                    break
                 print(f"Réponse du serveur: {response}")
             except ConnectionResetError:
                 print("Connexion réinitialisée par le serveur")

@@ -17,17 +17,25 @@ class SSLServer:
 
     def server_send(self, client_socket, message):
         try:
-            client_socket.sendall(bytes(message, encoding="utf-8"))
+            client_socket.sendall(message.encode("UTF-8"))
         except Exception as e:
             print(f"Erreur lors de l'envoi du message: {e}")
 
     def handle_login(self, client_socket, data):
-        username = data["username"]
+        username = data["username"] # ON OUBLIE PAS QU'ON RECOIT DES OCTETS CHEF!!!!
         password = data["password"]
+
 
         if username and password:
             if verify_user_db(username, password):
-                self.server_send(client_socket, "Connexion réussie !")
+                accept_login_obj = {
+                    "action": "accept_login",
+                    "message":"Connexion réussie."
+                }
+
+                jsonified_data = json.dumps(accept_login_obj)
+                print(jsonified_data)
+                #self.server_send(client_socket,jsonified_data)
             else:
                 self.server_send(client_socket, "Utilisateur introuvable !")
         else:
@@ -63,6 +71,7 @@ class SSLServer:
                     except:
                         print(f"Info : Non JSON data received.")
 
+                    # actions disponible pour le serveur 
                     if dejsonified_data and dejsonified_data.get('action') == "login":
                         self.handle_login(secure_socket, dejsonified_data)
 
