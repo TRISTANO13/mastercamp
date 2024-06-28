@@ -1,7 +1,8 @@
-#main.py
+# main.py
 import tkinter as tk
 from loginWin import LoginWindow
 from mainWin import MainWindow
+from client import SSLClient
 
 class App:
     def __init__(self, root):
