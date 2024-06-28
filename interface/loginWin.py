@@ -1,8 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from threading import Thread
-from client import SSLClient  
-from database import verify_user_db, register_user_db
+from client import client
 
 class LoginWindow(tk.Frame):
     def __init__(self, parent):
@@ -27,34 +26,25 @@ class LoginWindow(tk.Frame):
         self.login_button = tk.Button(self, text="Login", command=self.login)
         self.login_button.pack(pady=10)
 
-        self.register_button = tk.Button(self, text="Register", command=self.register_user)
+        self.register_button = tk.Button(self, text="Register", command=self.login)
         self.register_button.pack(pady=10)
         
     def login(self):
         username = self.entry_username.get()
         password = self.entry_password.get()
-        if username and password:
+        self.client = client
+        self.client.client_login(username,password);
+
+
+        """if username and password:
             if verify_user_db(username, password):
-                try:
-                    self.client = SSLClient('localhost', 8443)
-                    self.connect_and_send(username)
-                except Exception as e:
-                    messagebox.showerror("Error", f"Erreur lors de la connexion: {e}")
+                messagebox.showinfo("Success", "Login Successful")
             else:
-                messagebox.showerror("Error", "Invalid username or password")
+                messagebox.showerror("Error", "User not found")
         else:
-            messagebox.showerror("Error", "Username and password are required")
+            messagebox.showerror("Error", "Username and password are required")"""
 
-    def connect_and_send(self, username):
-        try:
-            self.client.connect(username)
-            self.client.send("Bonjour serveur!")
-            response = self.client.receive()
-            print(f"Reçu: {response}")
-            self.parent.open_main_window(username, self.client)
-        except Exception as e:
-            messagebox.showerror("Error", f"Erreur lors de la connexion: {e}")
-
+"""
     def register_user(self):
         username = self.entry_username.get()
         password = self.entry_password.get()
@@ -65,3 +55,18 @@ class LoginWindow(tk.Frame):
                 messagebox.showerror("Error", "Username already exists")
         else:
             messagebox.showerror("Error", "Username and password are required")
+"""
+
+"""
+if username and password:
+            if verify_user_db(username, password):
+                try:
+                    self.client = client
+                    self.client.client_login(username,password);
+                except Exception as e:
+                    messagebox.showerror("Error", f"Erreur lors de la connexion: {e}")
+            else:
+                messagebox.showerror("Error", "Invalid username or password")
+        else:
+            messagebox.showerror("Error", "Username and password are required")"""
+

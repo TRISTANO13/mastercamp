@@ -1,7 +1,7 @@
 #main.py
 import tkinter as tk
-from loginWin import LoginWindow
-from mainWin import MainWindow
+from interface.loginWin import LoginWindow
+from interface.mainWin import MainWindow
 
 class App:
     def __init__(self, root):
