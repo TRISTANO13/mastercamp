@@ -1,4 +1,4 @@
-#mainWin.py
+# mainWin.py
 import tkinter as tk
 from tkinter import messagebox
 
@@ -15,7 +15,10 @@ class MainWindow(tk.Frame):
         self.label_info = tk.Label(self, text=f"Connected as {self.username}")
         self.label_info.pack(pady=10)
 
-        self.text_entry = tk.Entry(self)
+        self.chat_history = tk.Text(self, height=20, width=50, state=tk.DISABLED)
+        self.chat_history.pack(pady=10)
+
+        self.text_entry = tk.Entry(self, width=50)
         self.text_entry.pack(pady=10)
 
         self.send_button = tk.Button(self, text="Send", command=self.send_message)
@@ -26,10 +29,16 @@ class MainWindow(tk.Frame):
         if message:
             try:
                 self.client.send(message)
-                print('Message sent ! ')
+                self.display_message(f"You: {message}")  # Affiche le message dans l'interface utilisateur
                 self.text_entry.delete(0, tk.END)
             except Exception as e:
                 messagebox.showerror("Error", f"Erreur lors de l'envoi du message: {e}")
         else:
             messagebox.showerror("Error", "Message cannot be empty")
+
+    def display_message(self, message):
+        self.chat_history.config(state=tk.NORMAL)  # Activer l'édition temporairement pour ajouter du texte
+        self.chat_history.insert(tk.END, message + "\n")
+        self.chat_history.config(state=tk.DISABLED)  # Désactiver l'édition après avoir ajouté du texte
+        self.chat_history.see(tk.END)  # Scroll jusqu'à la fin du texte
 

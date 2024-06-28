@@ -1,3 +1,4 @@
+# database.py
 import sqlite3
 import bcrypt
 
@@ -13,7 +14,7 @@ def register_user_db(username, password):
     c = conn.cursor()
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     try:
-        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password.decode('utf-8')))
         conn.commit()
     except sqlite3.IntegrityError:
         return False
@@ -27,7 +28,7 @@ def verify_user_db(username, password):
     c.execute("SELECT password FROM users WHERE username=?", (username,))
     result = c.fetchone()
     conn.close()
-    if result and bcrypt.checkpw(password.encode('utf-8'), result[0]):
+    if result and bcrypt.checkpw(password.encode('utf-8'), result[0].encode('utf-8')):
         return True
     return False
 
