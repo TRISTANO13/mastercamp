@@ -8,7 +8,7 @@ context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
 
 # Créer un socket TCP standard
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind(('0.0.0.0', 8443))
+server_socket.bind(('0.0.0.0', 8444))
 server_socket.listen(5)
 
 print("Le serveur est en attente de connexions...")

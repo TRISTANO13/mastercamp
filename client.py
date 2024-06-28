@@ -49,7 +49,7 @@ class SSLClient:
 
 if __name__ == "__main__":
     username = input('Entrez votre nom : ')
-    client = SSLClient('localhost', 8443)
+    client = SSLClient('localhost', 8444)
     client.connect(username)
     client.send("Bonjour serveur!")
     response = client.receive()
