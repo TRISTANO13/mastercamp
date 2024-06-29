@@ -32,9 +32,9 @@ class MainWindow(tk.Frame):
                 self.display_message(f"You: {message}")  # Affiche le message dans l'interface utilisateur
                 self.text_entry.delete(0, tk.END)
             except Exception as e:
-                messagebox.showerror("Error", f"Erreur lors de l'envoi du message: {e}")
+                tk.messagebox.showerror("Error", f"Erreur lors de l'envoi du message: {e}")
         else:
-            messagebox.showerror("Error", "Message cannot be empty")
+            tk.messagebox.showerror("Error", "Message cannot be empty")
 
     def display_message(self, message):
         self.chat_history.config(state=tk.NORMAL)  # Activer l'édition temporairement pour ajouter du texte

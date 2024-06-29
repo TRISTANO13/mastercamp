@@ -7,7 +7,7 @@ class LoginWindow(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent.root)
         self.client = parent.client # On récupère le client ici héhé :) 
-        self.parent = parent
+        self.interface = parent
         self.pack()
         self.create_widgets()
 
@@ -35,14 +35,13 @@ class LoginWindow(tk.Frame):
         password = self.entry_password.get()
         self.client.client_login(username,password);
 
-
-        """if username and password:
-            if verify_user_db(username, password):
-                messagebox.showinfo("Success", "Login Successful")
-            else:
-                messagebox.showerror("Error", "User not found")
+    def handle_login_response(self,data):
+        if "accept_login" in data.get("action"):
+                messagebox.showinfo("Success", data.get("message"))
+                self.interface.open_main_window()
         else:
-            messagebox.showerror("Error", "Username and password are required")"""
+                messagebox.showerror("Error", data.get("message"))
+        
 
 """
     def register_user(self):

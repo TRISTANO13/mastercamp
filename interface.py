@@ -10,7 +10,10 @@ class ChatInterface:
         self.root = tk.Tk()
         self.client = client
         self.login_window = LoginWindow(self)
-        #self.main_window = MainWindow(self, username, client)
+    
+    def open_main_window(self):
+        self.login_window.destroy()
+        self.main_window = MainWindow(self, username, client)
 
     def start(self):
         self.root.mainloop()
