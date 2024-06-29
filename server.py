@@ -1,6 +1,7 @@
 import socket
 import ssl
 import json
+import threading
 from database import verify_user_db
 
 # Créer un contexte SSL
@@ -21,10 +22,39 @@ class SSLServer:
         except Exception as e:
             print(f"Erreur lors de l'envoi du message: {e}")
 
-    def handle_login(self, client_socket, data):
-        username = data["username"] # ON OUBLIE PAS QU'ON RECOIT DES OCTETS CHEF!!!!
-        password = data["password"]
+    def server_send_json(self, client_socket, json_message):
+        try:
+            client_socket.sendall(json.dumps(json_message).encode("UTF-8"))
+        except Exception as e:
+            print(f"Erreur lors de l'envoi du message: {e}")
 
+    def server_receive(self):
+        # Accepter la connexion et enrouler avec SSL
+        while True:
+            client_socket, addr = self.server_socket.accept()
+            print(f"Connexion de {addr}")
+            """secure_socket = context.wrap_socket(client_socket, server_side=True)"""
+            secure_socket = client_socket
+            try:
+                # Recevoir et traiter les données du client
+                while True:
+                    data = secure_socket.recv(1024)
+                    if not data:
+                        break
+                    
+                    # On décide ce qu'on fait de ce qu'on a reçu
+                    self.handle_received_data(secure_socket,data);
+                    # On affiche ce qu'on a reçu 
+                    print(f"Reçu de {addr} : {data.decode('utf-8')}")
+
+            except Exception as e:
+                print(f"Erreur: {e}")
+            finally:
+                secure_socket.close()
+
+    def handle_login(self, client_socket, data):
+        username = data["username"] 
+        password = data["password"]
 
         if username and password:
             if verify_user_db(username, password):
@@ -33,59 +63,49 @@ class SSLServer:
                     "message":"Connexion réussie."
                 }
 
-                jsonified_data = json.dumps(accept_login_obj)
-                self.server_send(client_socket,jsonified_data)
+                self.server_send_json(client_socket,accept_login_obj)
             else:
                 reject_login_obj = {
                     "action": "reject_login",
                     "message":"Utilisateur ou mot de passe incorrect."
                 }
 
-                jsonified_data = json.dumps(reject_login_obj)
-                self.server_send(client_socket, jsonified_data)
+                self.server_send_json(client_socket, reject_login_obj)
         else:
-            self.server_send(client_socket, "L'utilisateur et le mot de passe sont nécessaires.")
+            reject_login_obj = {
+                    "action": "reject_login",
+                    "message":"Utilisateur ou mot de passe manquant."
+                }
+
+            self.server_send_json(client_socket, reject_login_obj)
+
+    def handle_received_data(self,client_socket,data):
+        decoded_data = data.decode('utf-8') # Je decode la data pour l'avoir en texte
+        dejsonified_data = None
+
+        ## =========== DONNEES RECUES EN JSON ============== ##
+        if json.loads(decoded_data) :
+
+            dejsonified_data = json.loads(decoded_data);
+
+            if dejsonified_data and dejsonified_data.get('action') == "login":
+                self.handle_login(client_socket, dejsonified_data)
+            
+        ## =========== DONNEES RECUES NON JSON ============== ##
+
+
 
     def start(self):
-        self.server_socket.bind((self.host, self.port))
-        self.server_socket.listen(5)
-        print("Le serveur est en attente de connexions...")
+        try:
+            self.server_socket.bind((self.host, self.port))
+            self.server_socket.listen(5)
+            print("Le serveur est en attente de connexions...")
+            receive_thread = threading.Thread(target=server.server_receive, args=())
+            receive_thread.start()
+        except Exception as e:
+            print("Erreur lors du lancement du server. : \n",e)
 
-        # Accepter la connexion et enrouler avec SSL
-        while True:
-            client_socket, addr = self.server_socket.accept()
-            print(f"Connexion de {addr}")
-            """secure_socket = context.wrap_socket(client_socket, server_side=True)"""
-            secure_socket = client_socket
-            try:
-                # Envoyer un message initial au client
-                # secure_socket.send(b"Bonjour client!")
-
-                # Recevoir et traiter les données du client
-                while True:
-                    data = secure_socket.recv(1024)
-                    if not data:
-                        break
-
-                    decoded_data = data.decode('utf-8')
-                    dejsonified_data = None
-                    # print(decoded_data)
-
-                    try:
-                        dejsonified_data = json.loads(decoded_data)  # Convertit le JSON en dictionnaire pour pouvoir l'utiliser avec Python
-                    except:
-                        print(f"Info : Non JSON data received.")
-
-                    # actions disponible pour le serveur 
-                    if dejsonified_data and dejsonified_data.get('action') == "login":
-                        self.handle_login(secure_socket, dejsonified_data)
-
-                    print(f"Reçu de {addr} : {data.decode('utf-8')}")
-
-            except Exception as e:
-                print(f"Erreur: {e}")
-            finally:
-                secure_socket.close()
+        
 
 if __name__ == "__main__":
     server = SSLServer('0.0.0.0', 8888)

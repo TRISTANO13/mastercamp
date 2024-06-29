@@ -2,11 +2,11 @@
 import tkinter as tk
 from tkinter import messagebox
 from threading import Thread
-from client import client
 
 class LoginWindow(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent.root)
+        self.client = parent.client # On récupère le client ici héhé :) 
         self.parent = parent
         self.pack()
         self.create_widgets()
@@ -33,7 +33,6 @@ class LoginWindow(tk.Frame):
     def login(self):
         username = self.entry_username.get()
         password = self.entry_password.get()
-        self.client = client
         self.client.client_login(username,password);
 
 

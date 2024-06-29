@@ -5,6 +5,7 @@ import threading
 import tkinter as tk
 from tkinter import messagebox
 
+
 class SSLClient:
     def __init__(self, host, port):
         self.host = host
@@ -14,7 +15,12 @@ class SSLClient:
         self.context.verify_mode = ssl.CERT_NONE
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.secure_socket = None
+        self.interface = None
 
+    def start(self):
+
+        self.connect()
+    ## ========== FONCTIONS ESSENTIELLES 
     def connect(self):
         try:
             # Créer un socket TCP standard
@@ -22,19 +28,25 @@ class SSLClient:
             # Enrouler le socket avec SSL
             #self.secure_socket = self.context.wrap_socket(self.socket, server_hostname=self.host)
             self.secure_socket = self.socket
-            
             # Connecter au serveur
             self.secure_socket.connect((self.host, self.port))
             print(f"Connexion réussie à {self.host}:{self.port}")
             #response = self.receive(1024)
-            receive_thread = threading.Thread(target=client.client_receive, args=())
+            receive_thread = threading.Thread(target=self.client_receive, args=())
             receive_thread.start()
+
         except Exception as e:
             print(f"Erreur de connexion: {e}")
 
-    def send(self, message):
+    def client_send(self, message):
         try:
             self.socket.send(bytes(message,encoding="utf-8"))
+        except Exception as e:
+            print(f"Erreur lors de l'envoi du message: {e}")
+
+    def client_send_json(self, json_message):
+        try:
+            self.socket.sendall(json.dumps(json_message).encode("UTF-8"))
         except Exception as e:
             print(f"Erreur lors de l'envoi du message: {e}")
 
@@ -81,8 +93,9 @@ class SSLClient:
         except Exception as e:
             print(f"Erreur lors de la fermeture de la connexion: {e}")
 
-    """ Commandes client """
+    ## ========== FONCTIONS GESTION DES REQUETES VERS LE CLIENT 
 
+    ## ========== FONCTIONS GESTION DES REQUETES DEPUIS LE CLIENT
     def client_login(self,username,password):
         data = {
             "action": "login",
@@ -90,20 +103,5 @@ class SSLClient:
             "password": password
         }
         
-        # On jsonifie le dictionnaire puis on encode le message afin de 
-        # pouvoir l'envoyer, puis on l'envoie
-        jsonified_data = json.dumps(data)
-        self.send(jsonified_data)
-
-try:
-    # On exporte cet objet de manière à ce que le client puisse être utilisé dans les autres fichiers
-    client = SSLClient("0.0.0.0",8888)
-    client.connect()
-
-except Exception as e :
-    print("Erreur lors de la connexion au serveur.")
-    print("\n",e);
-
-else:
-    print("Vous êtes connecté au serveur.")
+        self.client_send_json(data)
 

@@ -1,18 +1,19 @@
 # main.py
-import tkinter as tk
-from interface.loginWin import LoginWindow
-from interface.mainWin import MainWindow
-
-class App:
-    def __init__(self, root):
-        self.root = root
-        self.login_window = LoginWindow(self)
-
-    def open_main_window(self, username, client):
-        self.login_window.destroy()
-        self.main_window = MainWindow(self, username, client)
+from client import *
+from interface import * 
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = App(root)
-    root.mainloop()
+    try:
+        client = SSLClient("0.0.0.0",8888)
+        client.start()
+        
+    except Exception as e :
+            print("Erreur lors de la connexion au serveur.")
+            print("\n",e);
+
+    else:
+            print("Vous êtes connecté au serveur.")
+            print("Lancement de l'interface...")
+            client.interface = ChatInterface(client)
+            client.interface.start()
+
