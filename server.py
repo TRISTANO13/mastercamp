@@ -15,6 +15,7 @@ class SSLServer:
         self.port = port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.secure_socket = None
+        self.server_loggedUsers = []
 
     def server_send(self, client_socket, message):
         try:
@@ -60,9 +61,11 @@ class SSLServer:
             if verify_user_db(username, password):
                 accept_login_obj = {
                     "action": "accept_login",
-                    "message":"Connexion réussie."
+                    "message":"Connexion réussie.",
+                    "username":username
                 }
 
+                self.do_loggin_user(username,client_socket)
                 self.server_send_json(client_socket,accept_login_obj)
             else:
                 reject_login_obj = {
@@ -91,8 +94,27 @@ class SSLServer:
             if dejsonified_data and dejsonified_data.get('action') == "login":
                 self.handle_login(client_socket, dejsonified_data)
             
+            if dejsonified_data and dejsonified_data.get('action') == "get_logged_users":
+                loggedUsers_json = {
+                    "action":"get_logged_users",
+                    "value":self.get_logged_users(client_socket)
+                }
+                self.server_send_json(client_socket,loggedUsers_json)
+
         ## =========== DONNEES RECUES NON JSON ============== ##
 
+    def do_loggin_user(self,username,client_socket):
+        self.server_loggedUsers.append({"username":username,"socket":client_socket})
+    
+    def get_logged_users(self,client_socket):
+        loggedInUsers = []
+        # Parcours du tableau de dictionnaires
+        for users in self.server_loggedUsers:
+        # Extraction de la valeur de la clé 'username' et ajout au tableau
+            if 'username' in users:
+                loggedInUsers.append(users['username'])
+        
+        return loggedInUsers
 
 
     def start(self):

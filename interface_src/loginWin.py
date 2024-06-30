@@ -10,6 +10,7 @@ class LoginWindow(tk.Frame):
         self.interface = parent
         self.pack()
         self.create_widgets()
+        self.username = ""
 
     def create_widgets(self):
         self.label_username = tk.Label(self, text="Username:")
@@ -38,7 +39,7 @@ class LoginWindow(tk.Frame):
     def handle_login_response(self,data):
         if "accept_login" in data.get("action"):
                 messagebox.showinfo("Success", data.get("message"))
-                self.interface.open_main_window()
+                self.interface.open_main_window(data.get("username"))
         else:
                 messagebox.showerror("Error", data.get("message"))
         

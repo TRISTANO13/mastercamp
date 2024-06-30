@@ -73,6 +73,10 @@ class SSLClient:
                 # actions disponible pour le serveur 
                 if dejsonified_data and dejsonified_data.get('action') == "accept_login" or "reject_login":
                     self.interface.login_window.handle_login_response(dejsonified_data)
+                
+                if dejsonified_data and dejsonified_data.get('action') == "get_logged_users":
+                    self.interface.main_window.alert_connected_users(dejsonified_data.get('value'))
+
 
                 print(f"Réponse du serveur: {response}")
             except ConnectionResetError:
@@ -98,3 +102,9 @@ class SSLClient:
         
         self.client_send_json(data)
 
+    def client_get_logged_users(self):
+        data = {
+            "action": "get_logged_users"
+        }
+        
+        self.client_send_json(data)

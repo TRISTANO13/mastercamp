@@ -11,9 +11,9 @@ class ChatInterface:
         self.client = client
         self.login_window = LoginWindow(self)
     
-    def open_main_window(self):
+    def open_main_window(self,username):
         self.login_window.destroy()
-        self.main_window = MainWindow(self, username, client)
+        self.main_window = MainWindow(self, username, self.client)
 
     def start(self):
         self.root.mainloop()

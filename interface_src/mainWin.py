@@ -10,13 +10,13 @@ class MainWindow(tk.Frame):
         self.client = client
         self.pack()
         self.create_widgets()
+        self.loggedInUsers = self.client.client_get_logged_users()
+        self.chat_history = tk.Text(self, height=20, width=50, state=tk.DISABLED)
+        self.chat_history.pack(pady=10)
 
     def create_widgets(self):
         self.label_info = tk.Label(self, text=f"Connected as {self.username}")
         self.label_info.pack(pady=10)
-
-        self.chat_history = tk.Text(self, height=20, width=50, state=tk.DISABLED)
-        self.chat_history.pack(pady=10)
 
         self.text_entry = tk.Entry(self, width=50)
         self.text_entry.pack(pady=10)
@@ -42,3 +42,5 @@ class MainWindow(tk.Frame):
         self.chat_history.config(state=tk.DISABLED)  # Désactiver l'édition après avoir ajouté du texte
         self.chat_history.see(tk.END)  # Scroll jusqu'à la fin du texte
 
+    def alert_connected_users(self,data):
+        tk.messagebox.showerror("Error", data)
