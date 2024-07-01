@@ -36,12 +36,13 @@ class LoginWindow(tk.Frame):
         password = self.entry_password.get()
         self.client.client_login(username,password);
 
-    def handle_login_response(self,data):
-        if "accept_login" in data.get("action"):
-                messagebox.showinfo("Success", data.get("message"))
-                self.interface.open_main_window(data.get("username"))
+    def handle_login_response(self, data):
+        if data.get("action") == "accept_login":
+            messagebox.showinfo("Success", data.get("message"))
+            self.interface.open_main_window(data.get("username"))
         else:
-                messagebox.showerror("Error", data.get("message"))
+            messagebox.showerror("Error", data.get("message"))
+                    
         
 
 """
