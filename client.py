@@ -86,6 +86,8 @@ class SSLClient:
                     self.interface.main_window.set_loggedIn_Users(dejsonified_data.get('value'))
                 if dejsonified_data and dejsonified_data.get('action') == "close_window":
                     self.interface.main_window.close_window()
+                if dejsonified_data.get('action') == "accept_room" or dejsonified_data.get('action') == "reject_room":
+                    self.interface.main_window.handle_room_response(dejsonified_data)
                     
 
 
@@ -124,5 +126,14 @@ class SSLClient:
             "action": "register",
             "username": username,
             "password": password
+        }
+        self.client_send_json(data)
+        
+    def client_create_room(self,username,selected_user,room_name):
+        data = {
+            "action": "create_room",
+            "From": username,
+            "to": selected_user,
+            "name": room_name
         }
         self.client_send_json(data)

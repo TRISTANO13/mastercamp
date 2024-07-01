@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import messagebox
 from interface_src.loginWin import LoginWindow
 from interface_src.mainWin import MainWindow
+from interface_src.chatWin import chatWindow
 import threading
 
 class ChatInterface:
@@ -18,6 +19,10 @@ class ChatInterface:
             self.main_window = MainWindow(self, username)
         except Exception as e:
             messagebox.showerror("Erreur", e)
+            
+    def open_chat_window(self,select_user,room_name,username):
+        # room_window = chatWindow(self.parent.root, room_name, self.username, self.selected_user)
+        print(" h ")
     
     def get_main_window(self):
         return self.main_window
