@@ -27,7 +27,7 @@ class MainWindow(tk.Frame):
             self.create_room_button = tk.Button(button_frame, text="Créer une salle", command=None)
             self.create_room_button.pack(side=tk.LEFT, padx=5)
 
-            self.disconnect_button = tk.Button(button_frame, text="Déconnexion", command=None)
+            self.disconnect_button = tk.Button(button_frame, text="Déconnexion", command=lambda: self.deco(username))
             self.disconnect_button.pack(side=tk.LEFT, padx=5)
 
         except Exception as e:
@@ -40,3 +40,13 @@ class MainWindow(tk.Frame):
                 self.user_listbox.insert(tk.END,user);
         except Exception as e:
             messagebox.showerror("Erreur", e)
+            
+    def close_window(self):
+        self.parent.root.destroy()
+    
+    
+    
+    def deco(self,username):
+        self.client.client_deco(username);
+
+    

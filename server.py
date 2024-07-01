@@ -83,6 +83,7 @@ class SSLServer:
                 }
 
             self.server_send_json(client_socket, reject_login_obj)
+            
 
     def handle_received_data(self,client_socket,data):
         decoded_data = data.decode('utf-8') # Je decode la data pour l'avoir en texte
@@ -101,9 +102,23 @@ class SSLServer:
                     "value":self.get_logged_users(client_socket)
                 }
                 self.server_send_json(client_socket,loggedUsers_json)
+            
+            if dejsonified_data and dejsonified_data.get('action') == "deconnexion":
+                username = dejsonified_data["username"] 
+                print('1',self.server_loggedUsers)
+                self.server_loggedUsers.remove(username)
+                print('2',self.server_loggedUsers)
+                
+                print(f'{username} Déconnecté')
+                DecoUser_json = {
+                    "action":"close_window",
+                }
+                self.server_send_json(client_socket,DecoUser_json)
+                
         except:
             print("Reponse non JSON reçue.")
         ## =========== DONNEES RECUES NON JSON ============== ##
+        
 
     def do_loggin_user(self,username,client_socket):
         self.server_loggedUsers.append({"username":username,"socket":client_socket})

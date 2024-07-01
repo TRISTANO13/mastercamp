@@ -82,6 +82,8 @@ class SSLClient:
                     self.interface.login_window.handle_login_response(dejsonified_data)
                 if dejsonified_data and dejsonified_data.get('action') == "get_logged_users":
                     self.interface.main_window.set_loggedIn_Users(dejsonified_data.get('value'))
+                if dejsonified_data and dejsonified_data.get('action') == "close_window":
+                    self.interface.main_window.close_window()
 
 
                 print(f"Réponse du serveur: {response}")
@@ -104,4 +106,11 @@ class SSLClient:
             "password": password
         }
         
+        self.client_send_json(data)
+        
+    def client_deco(self,username):
+        data = {
+            "action": "deconnexion",
+            "username": username,
+        }
         self.client_send_json(data)
