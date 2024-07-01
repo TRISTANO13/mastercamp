@@ -29,6 +29,8 @@ class MainWindow(tk.Frame):
 
             self.disconnect_button = tk.Button(button_frame, text="Déconnexion", command=lambda: self.deco(username))
             self.disconnect_button.pack(side=tk.LEFT, padx=5)
+            
+            self.parent.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         except Exception as e:
             messagebox.showerror("Erreur", e)
@@ -42,11 +44,13 @@ class MainWindow(tk.Frame):
             messagebox.showerror("Erreur", e)
             
     def close_window(self):
+        print("deconnécté")
         self.parent.root.destroy()
-    
     
     
     def deco(self,username):
         self.client.client_deco(username);
 
+    def on_closing(self):
+            self.deco(self.username)
     

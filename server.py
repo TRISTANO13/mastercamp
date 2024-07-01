@@ -105,11 +105,12 @@ class SSLServer:
             
             if dejsonified_data and dejsonified_data.get('action') == "deconnexion":
                 username = dejsonified_data["username"] 
+                
+                # Supprimer l'utilisateur de la liste des utilisateurs connectés
                 print('1',self.server_loggedUsers)
-                self.server_loggedUsers.remove(username)
+                self.do_logout_user(username)
                 print('2',self.server_loggedUsers)
                 
-                print(f'{username} Déconnecté')
                 DecoUser_json = {
                     "action":"close_window",
                 }
@@ -143,7 +144,17 @@ class SSLServer:
         except Exception as e:
             print("Erreur lors du lancement du server. : \n",e)
 
-        
+    def do_logout_user(self, username):
+        try:
+            for user in self.server_loggedUsers:
+                if user.get('username') == username:
+                    self.server_loggedUsers.remove(user)
+                    print(f"{username} déconnecté.")
+                    break
+        except Exception as e:
+            print(f"Erreur lors de la déconnexion de {username}: {e}") 
+            
+    
 
 if __name__ == "__main__":
     server = SSLServer('0.0.0.0', 8888)

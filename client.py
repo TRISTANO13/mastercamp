@@ -84,6 +84,7 @@ class SSLClient:
                     self.interface.main_window.set_loggedIn_Users(dejsonified_data.get('value'))
                 if dejsonified_data and dejsonified_data.get('action') == "close_window":
                     self.interface.main_window.close_window()
+                    
 
 
                 print(f"Réponse du serveur: {response}")
