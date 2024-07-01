@@ -128,12 +128,12 @@ class SSLServer:
                 self.server_send_json(client_socket,accept_room_obj)
 
         else:
-            reject_login_obj = {
+            reject_room_obj = {
                     "action": "reject_login",
                     "message":"Utilisateur ou mot de passe manquant."
                 }
 
-            self.server_send_json(client_socket, reject_login_obj)
+            self.server_send_json(client_socket, reject_room_obj)
             
         
     def handle_received_data(self,client_socket,data):
