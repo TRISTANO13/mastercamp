@@ -45,7 +45,7 @@ class SSLClient:
             self.socket.sendall(json.dumps(json_message).encode("UTF-8"))
         except Exception as e:
             print(f"Erreur lors de l'envoi du message: {e}")
-
+    
     def receive(self, buffer_size=1024):
         try:
             data = self.socket.recv(buffer_size)
@@ -53,6 +53,13 @@ class SSLClient:
         except Exception as e:
             print(f"Erreur lors de la réception du message: {e}")
             return None
+    
+    def client_get_logged_users(self):
+        data = {
+            "action": "get_logged_users"
+        }
+        
+        self.socket.sendall(bytes(json.dumps(data),encoding='utf-8'))
 
     def client_receive(self):
         while True:
@@ -75,7 +82,7 @@ class SSLClient:
                     self.interface.login_window.handle_login_response(dejsonified_data)
                 
                 if dejsonified_data and dejsonified_data.get('action') == "get_logged_users":
-                    self.interface.main_window.alert_connected_users(dejsonified_data.get('value'))
+                    self.interface.main_window.set_loggedIn_Users(dejsonified_data.get('value'))
 
 
                 print(f"Réponse du serveur: {response}")
@@ -90,21 +97,12 @@ class SSLClient:
         except Exception as e:
             print(f"Erreur lors de la fermeture de la connexion: {e}")
 
-    ## ========== FONCTIONS GESTION DES REQUETES VERS LE CLIENT 
-
     ## ========== FONCTIONS GESTION DES REQUETES DEPUIS LE CLIENT
     def client_login(self,username,password):
         data = {
             "action": "login",
             "username": username,
             "password": password
-        }
-        
-        self.client_send_json(data)
-
-    def client_get_logged_users(self):
-        data = {
-            "action": "get_logged_users"
         }
         
         self.client_send_json(data)

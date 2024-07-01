@@ -20,12 +20,14 @@ class SSLServer:
     def server_send(self, client_socket, message):
         try:
             client_socket.sendall(message.encode("UTF-8"))
+            print(f"[OUT] : {message}")
         except Exception as e:
             print(f"Erreur lors de l'envoi du message: {e}")
 
     def server_send_json(self, client_socket, json_message):
         try:
             client_socket.sendall(json.dumps(json_message).encode("UTF-8"))
+            print(f"[OUT-J] : {json_message}")
         except Exception as e:
             print(f"Erreur lors de l'envoi du message: {e}")
 
@@ -33,7 +35,7 @@ class SSLServer:
         # Accepter la connexion et enrouler avec SSL
         while True:
             client_socket, addr = self.server_socket.accept()
-            print(f"Connexion de {addr}")
+            print(f"[CONNECT] {addr}")
             """secure_socket = context.wrap_socket(client_socket, server_side=True)"""
             secure_socket = client_socket
             try:
@@ -46,10 +48,10 @@ class SSLServer:
                     # On décide ce qu'on fait de ce qu'on a reçu
                     self.handle_received_data(secure_socket,data);
                     # On affiche ce qu'on a reçu 
-                    print(f"Reçu de {addr} : {data.decode('utf-8')}")
+                    print(f"[IN] {addr} : {data.decode('utf-8')}")
 
             except Exception as e:
-                print(f"Erreur: {e}")
+                print(f"Erreur caca: {e}")
             finally:
                 secure_socket.close()
 
@@ -87,8 +89,7 @@ class SSLServer:
         dejsonified_data = None
 
         ## =========== DONNEES RECUES EN JSON ============== ##
-        if json.loads(decoded_data) :
-
+        try:
             dejsonified_data = json.loads(decoded_data);
 
             if dejsonified_data and dejsonified_data.get('action') == "login":
@@ -100,7 +101,8 @@ class SSLServer:
                     "value":self.get_logged_users(client_socket)
                 }
                 self.server_send_json(client_socket,loggedUsers_json)
-
+        except:
+            print("Reponse non JSON reçue.")
         ## =========== DONNEES RECUES NON JSON ============== ##
 
     def do_loggin_user(self,username,client_socket):
@@ -115,7 +117,6 @@ class SSLServer:
                 loggedInUsers.append(users['username'])
         
         return loggedInUsers
-
 
     def start(self):
         try:

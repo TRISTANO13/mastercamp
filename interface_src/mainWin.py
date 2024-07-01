@@ -3,44 +3,40 @@ import tkinter as tk
 from tkinter import messagebox
 
 class MainWindow(tk.Frame):
-    def __init__(self, parent, username, client):
+    def __init__(self, parent, username):
         super().__init__(parent.root)
         self.parent = parent
         self.username = username
-        self.client = client
-        self.pack()
-        self.create_widgets()
-        self.loggedInUsers = self.client.client_get_logged_users()
-        self.chat_history = tk.Text(self, height=20, width=50, state=tk.DISABLED)
-        self.chat_history.pack(pady=10)
+        self.client = parent.client
+        self.client.client_get_logged_users()
+        
+        try:
+            # Créer une frame principale
+            main_frame = tk.Frame(self.parent.root)
+            main_frame.pack(pady=20, padx=20)
 
-    def create_widgets(self):
-        self.label_info = tk.Label(self, text=f"Connected as {self.username}")
-        self.label_info.pack(pady=10)
+            # Créer une liste carré pour les noms d'utilisateurs
+            self.user_listbox = tk.Listbox(main_frame, width=30, height=10)
+            self.user_listbox.pack(pady=10)
 
-        self.text_entry = tk.Entry(self, width=50)
-        self.text_entry.pack(pady=10)
+            # Ajouter des noms d'utilisateurs à la liste pour la démonstration
+            # Créer les boutons
+            button_frame = tk.Frame(main_frame)
+            button_frame.pack(pady=10)
 
-        self.send_button = tk.Button(self, text="Send", command=self.send_message)
-        self.send_button.pack(pady=10)
+            self.create_room_button = tk.Button(button_frame, text="Créer une salle", command=None)
+            self.create_room_button.pack(side=tk.LEFT, padx=5)
 
-    def send_message(self):
-        message = self.text_entry.get()
-        if message:
-            try:
-                self.client.send(message)
-                self.display_message(f"You: {message}")  # Affiche le message dans l'interface utilisateur
-                self.text_entry.delete(0, tk.END)
-            except Exception as e:
-                tk.messagebox.showerror("Error", f"Erreur lors de l'envoi du message: {e}")
-        else:
-            tk.messagebox.showerror("Error", "Message cannot be empty")
+            self.disconnect_button = tk.Button(button_frame, text="Déconnexion", command=None)
+            self.disconnect_button.pack(side=tk.LEFT, padx=5)
 
-    def display_message(self, message):
-        self.chat_history.config(state=tk.NORMAL)  # Activer l'édition temporairement pour ajouter du texte
-        self.chat_history.insert(tk.END, message + "\n")
-        self.chat_history.config(state=tk.DISABLED)  # Désactiver l'édition après avoir ajouté du texte
-        self.chat_history.see(tk.END)  # Scroll jusqu'à la fin du texte
-
-    def alert_connected_users(self,data):
-        tk.messagebox.showerror("Error", data)
+        except Exception as e:
+            messagebox.showerror("Erreur", e)
+    
+    def set_loggedIn_Users(self,users):
+        try:
+            self.loggedInUsers = users
+            for user in self.loggedInUsers:
+                self.user_listbox.insert(tk.END,user);
+        except Exception as e:
+            messagebox.showerror("Erreur", e)
