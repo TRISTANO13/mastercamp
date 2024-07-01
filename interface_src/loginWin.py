@@ -28,7 +28,7 @@ class LoginWindow(tk.Frame):
         self.login_button = tk.Button(self, text="Login", command=self.login)
         self.login_button.pack(pady=10)
 
-        self.register_button = tk.Button(self, text="Register", command=self.login)
+        self.register_button = tk.Button(self, text="Register", command=self.register_user)
         self.register_button.pack(pady=10)
         
     def login(self):
@@ -43,20 +43,19 @@ class LoginWindow(tk.Frame):
         else:
             messagebox.showerror("Error", data.get("message"))
                     
-        
-
-"""
+    
+    def handle_register_response(self, data):
+        if data.get("action") == "accept_register":
+            messagebox.showinfo("Success", data.get("message"))
+        else:
+            messagebox.showerror("Error", data.get("message"))
+                
     def register_user(self):
         username = self.entry_username.get()
         password = self.entry_password.get()
-        if username and password:
-            if register_user_db(username, password):
-                messagebox.showinfo("Success", "User registered successfully")
-            else:
-                messagebox.showerror("Error", "Username already exists")
-        else:
-            messagebox.showerror("Error", "Username and password are required")
-"""
+        self.client.client_register(username,password);
+        
+
 
 """
 if username and password:

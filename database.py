@@ -12,7 +12,7 @@ def initialize_db():
 def register_user_db(username, password):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    hashed_password = bcrypt.hashpw(password, bcrypt.gensalt())
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     try:
         c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password.decode('utf-8')))
         conn.commit()
@@ -22,13 +22,29 @@ def register_user_db(username, password):
         conn.close()
     return True
 
+
 def verify_user_db(username, password):
+    try:
+        with sqlite3.connect('users.db') as conn:
+            c = conn.cursor()
+            c.execute("SELECT password FROM users WHERE username=?", (username,))
+            result = c.fetchone()
+            if result and bcrypt.checkpw(password.encode('utf-8'), result[0].encode('utf-8')):
+                return True
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+    except Exception as e:
+        print(f"Error: {e}")
+    return False
+    
+
+def verify_user_available(username, password):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
     c.execute("SELECT password FROM users WHERE username=?", (username,))
     result = c.fetchone()
     conn.close()
-    if result and bcrypt.checkpw(password.encode('utf-8'), result[0]):
+    if result:
         return True
     return False
 
