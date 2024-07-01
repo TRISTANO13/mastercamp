@@ -111,6 +111,30 @@ class SSLServer:
                     "message":"Utilisateur ou mot de passe manquant."
                 }
             self.server_send_json(client_socket, reject_register_obj)
+            
+    def handle_room(self, client_socket, data):
+        From = data["From"] 
+        To = data["to"]
+        Name = data["name"]
+
+        if From and To and Name:
+                accept_room_obj = {
+                    "action": "accept_room",
+                    "message":"Room créée.",
+                    "From": From,
+                    "To": To,
+                    "Name": Name
+                }
+                self.server_send_json(client_socket,accept_room_obj)
+
+        else:
+            reject_login_obj = {
+                    "action": "reject_login",
+                    "message":"Utilisateur ou mot de passe manquant."
+                }
+
+            self.server_send_json(client_socket, reject_login_obj)
+            
         
     def handle_received_data(self,client_socket,data):
         decoded_data = data.decode('utf-8') # Je decode la data pour l'avoir en texte
@@ -145,6 +169,9 @@ class SSLServer:
                     "action":"close_window",
                 }
                 self.server_send_json(client_socket,DecoUser_json)
+                
+            if dejsonified_data and dejsonified_data.get('action') == "create_room":
+                self.handle_room(client_socket, dejsonified_data)
                 
         except:
             print("Reponse non JSON reçue.")

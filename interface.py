@@ -1,9 +1,8 @@
-
-# main.py
 import customtkinter as tk
 from tkinter import messagebox
 from interface_src.loginWin import LoginWindow
 from interface_src.mainWin import MainWindow
+from interface_src.chatWin import ChatWindow
 import threading
 
 class ChatInterface:
@@ -25,7 +24,16 @@ class ChatInterface:
             self.main_window = MainWindow(self, username)
         except Exception as e:
             messagebox.showerror("Erreur", e)
-    
+            
+    def open_chat_window(self,select_user,room_name,username):
+        try:
+            print("creation de la room")
+            self.chat_window = ChatWindow(self,select_user,room_name,username) 
+            
+        except Exception as e:
+            messagebox.showerror("Erreur", e)
+            
+            
     def get_main_window(self):
         return self.main_window
         
