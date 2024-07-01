@@ -2,7 +2,7 @@ import socket
 import ssl
 import json
 import threading
-from database import verify_user_db
+from database import verify_user_db,verify_user_available,register_user_db
 
 # Créer un contexte SSL
 """context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -83,7 +83,36 @@ class SSLServer:
                 }
 
             self.server_send_json(client_socket, reject_login_obj)
+        
+    def handle_register(self, client_socket, data):
+        username = data["username"] 
+        password = data["password"]
 
+        if username and password:
+            if not verify_user_available(username, password):
+                accept_register_obj = {
+                    "action": "accept_register",
+                    "message":"Votre compte a bien été crée.",
+                    "username":username
+                }
+
+                register_user_db(username,password)
+                self.server_send_json(client_socket,accept_register_obj)
+            else:
+                reject_register_obj = {
+                    "action": "reject_register",
+                    "message":"Utilisateur déjà existant."
+                }
+
+                self.server_send_json(client_socket, reject_register_obj)
+        else:
+            reject_register_obj = {
+                    "action": "reject_register",
+                    "message":"Utilisateur ou mot de passe manquant."
+                }
+
+            self.server_send_json(client_socket, reject_register_obj)
+        
     def handle_received_data(self,client_socket,data):
         decoded_data = data.decode('utf-8') # Je decode la data pour l'avoir en texte
         dejsonified_data = None
@@ -94,6 +123,9 @@ class SSLServer:
 
             if dejsonified_data and dejsonified_data.get('action') == "login":
                 self.handle_login(client_socket, dejsonified_data)
+            
+            if dejsonified_data and dejsonified_data.get('action') == "register":
+                self.handle_register(client_socket, dejsonified_data)
             
             if dejsonified_data and dejsonified_data.get('action') == "get_logged_users":
                 loggedUsers_json = {

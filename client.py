@@ -80,6 +80,8 @@ class SSLClient:
                 # Actions disponibles pour le serveur 
                 if dejsonified_data.get('action') == "accept_login" or dejsonified_data.get('action') == "reject_login":
                     self.interface.login_window.handle_login_response(dejsonified_data)
+                if dejsonified_data.get('action') == "accept_register" or dejsonified_data.get('action') == "reject_register":
+                    self.interface.login_window.handle_register_response(dejsonified_data)
                 if dejsonified_data and dejsonified_data.get('action') == "get_logged_users":
                     self.interface.main_window.set_loggedIn_Users(dejsonified_data.get('value'))
 
@@ -100,6 +102,15 @@ class SSLClient:
     def client_login(self,username,password):
         data = {
             "action": "login",
+            "username": username,
+            "password": password
+        }
+        
+        self.client_send_json(data)
+
+    def client_register(self,username,password):
+        data = {
+            "action": "register",
             "username": username,
             "password": password
         }
