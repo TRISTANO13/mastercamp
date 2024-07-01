@@ -110,7 +110,6 @@ class SSLServer:
                     "action": "reject_register",
                     "message":"Utilisateur ou mot de passe manquant."
                 }
-
             self.server_send_json(client_socket, reject_register_obj)
         
     def handle_received_data(self,client_socket,data):
@@ -133,9 +132,24 @@ class SSLServer:
                     "value":self.get_logged_users(client_socket)
                 }
                 self.server_send_json(client_socket,loggedUsers_json)
+            
+            if dejsonified_data and dejsonified_data.get('action') == "deconnexion":
+                username = dejsonified_data["username"] 
+                
+                # Supprimer l'utilisateur de la liste des utilisateurs connectés
+                print('1',self.server_loggedUsers)
+                self.do_logout_user(username)
+                print('2',self.server_loggedUsers)
+                
+                DecoUser_json = {
+                    "action":"close_window",
+                }
+                self.server_send_json(client_socket,DecoUser_json)
+                
         except:
             print("Reponse non JSON reçue.")
         ## =========== DONNEES RECUES NON JSON ============== ##
+        
 
     def do_loggin_user(self,username,client_socket):
         self.server_loggedUsers.append({"username":username,"socket":client_socket})
@@ -160,7 +174,17 @@ class SSLServer:
         except Exception as e:
             print("Erreur lors du lancement du server. : \n",e)
 
-        
+    def do_logout_user(self, username):
+        try:
+            for user in self.server_loggedUsers:
+                if user.get('username') == username:
+                    self.server_loggedUsers.remove(user)
+                    print(f"{username} déconnecté.")
+                    break
+        except Exception as e:
+            print(f"Erreur lors de la déconnexion de {username}: {e}") 
+            
+    
 
 if __name__ == "__main__":
     server = SSLServer('0.0.0.0', 8888)
