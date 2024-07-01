@@ -82,5 +82,4 @@ class MainWindow(tk.Frame):
             self.interface.open_chat_window(data.get("To"),data.get("Name"),data.get("From"))
         else:
             messagebox.showerror("Error", data.get("message"))
-        print()
               

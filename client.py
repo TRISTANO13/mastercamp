@@ -88,7 +88,8 @@ class SSLClient:
                     self.interface.main_window.close_window()
                 if dejsonified_data.get('action') == "accept_room" or dejsonified_data.get('action') == "reject_room":
                     self.interface.main_window.handle_room_response(dejsonified_data)
-                    
+                if dejsonified_data.get('action') == "accept_message" or dejsonified_data.get('action') == "reject_message":
+                    self.interface.chat_window.handle_message_response(dejsonified_data)
 
 
                 print(f"Réponse du serveur: {response}")
@@ -135,5 +136,15 @@ class SSLClient:
             "From": username,
             "to": selected_user,
             "name": room_name
+        }
+        self.client_send_json(data)
+        
+    def client_send_chat_message(self,room_name,selected_user,username, message):
+        data={
+            "action": "room_message",
+            "From": username,
+            "to": selected_user,
+            "name": room_name,
+            "message": message
         }
         self.client_send_json(data)

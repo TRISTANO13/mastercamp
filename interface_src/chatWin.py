@@ -42,10 +42,22 @@ class ChatWindow(tk.Toplevel):
     def send_message(self):
         message = self.message_entry.get()
         if message:
-            self.client.client_send_chat_message(self.room_name, self.username, message)
+            self.client.client_send_chat_message(self.room_name,self.selected_user, self.username, message)
             self.message_entry.delete(0, tk.END)
         else:
             messagebox.showwarning("Message vide", "Veuillez saisir un message avant d'envoyer.")
 
-    def receive_message(self, message):
-        self.chat_listbox.insert(tk.END, message)
+   
+    def handle_message_response(self, data):
+        action = data.get("action")
+        message = data.get("message")
+        sender = data.get("From")
+        room_id = data.get("Id")
+
+        if action == "accept_message":
+            if room_id == self.room_name:
+                self.chat_listbox.insert(tk.END, f"{message}")
+                self.chat_listbox.see(tk.END)  
+                
+        else:
+            messagebox.showerror("Erreur", message)
