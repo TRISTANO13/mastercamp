@@ -20,29 +20,41 @@ class ChatWindow(CTkToplevel):
 
         try:
             self.title(f"Chat Room - {self.room_name}")
-            self.geometry("500x500")
+            self.geometry("500x460")
             self.send_image = CTkImage(light_image=Image.open('img/send-hor-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/send-hor-svgrepo-com.png').convert('RGBA'),size=(40,40)) # WidthxHeight
+            self.file_image = CTkImage(light_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),size=(25,25)) # WidthxHeight
+            self.emote_image = CTkImage(light_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),size=(25,25)) # WidthxHeight
+            self.trash_image = CTkImage(light_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),size=(25,25)) # WidthxHeight
 
 
             # Créer une frame principale
             self.main_frame = CTkFrame(self)
-            self.main_frame.pack(pady=20, padx=20, expand=True, fill=tk.BOTH)
+            self.main_frame.pack(pady=(25), padx=20, expand=True, fill=tk.BOTH)
 
             # Créer une liste pour afficher les messages de chat
-            self.chat_listbox = CTkListbox(self.main_frame, width=420, height=300)
+            self.chat_listbox = CTkListbox(self.main_frame, width=420, height=270)
             self.chat_listbox.pack(pady=10)
 
+            self.misc_frame = CTkFrame(self.main_frame, width=50,height=85,fg_color="transparent",bg_color="transparent")
+            self.misc_frame.pack(side=tk.LEFT,pady=(2,0), padx=(6,2),anchor='n')
+
+            # Envoyer fichier
+            self.file_button = CTkButton(self.misc_frame, text="a",command=self.send_message,width=28,height=28,image=self.file_image)
+            self.file_button.pack(side=tk.TOP,pady=(1),padx=(4),anchor="n")
+            
+            self.emote_button = CTkButton(self.misc_frame, text="b",command=self.send_message,width=28,height=28)
+            self.emote_button.pack(side=tk.BOTTOM,pady=(1),padx=(4),anchor="w")
+
+            self.junk_button = CTkButton(self.misc_frame, text="c",command=self.send_message,width=28,height=28)
+            self.junk_button.pack(side=tk.BOTTOM,pady=(1),padx=(4),anchor="w")
+
             # Créer une entrée pour saisir les messages
-            self.message_entry = CTkEntry(self.main_frame, width=400,height=80)
-            self.message_entry.pack(side=tk.LEFT,pady=5,padx=(5,2),anchor='s')
+            self.message_entry = CTkEntry(self.main_frame, width=330,height=85)
+            self.message_entry.pack(side=tk.LEFT,pady=(2,0),padx=(2),anchor='n')
 
             # Créer un bouton pour envoyer le message
-            #self.send_button = CTkButton(self.main_frame, text="",command=self.send_message,width=120,height=80,image=self.send_image)
-            #self.send_button.pack(side=tk.LEFT, pady=5, padx=(2,5),anchor='s')
-
-            # Ajouter un bouton pour envoyer des fichiers
-            self.send_file_button = CTkButton(self.main_frame, text="Envoyer un fichier", command=self.send_file, width=120, height=40)
-            self.send_file_button.pack(side=tk.LEFT, pady=5, padx=(2, 5), anchor='s')
+            self.send_button = CTkButton(self.main_frame, text="",command=self.send_message,width=90,height=85,image=self.send_image)
+            self.send_button.pack(side=tk.LEFT, pady=(2,0), padx=(2,10),anchor='n')
 
             # Créer un bouton pour fermer la fenêtre de chat
             #self.close_button = tk.Button(self.main_frame, text="Fermer", command=self.destroy)
