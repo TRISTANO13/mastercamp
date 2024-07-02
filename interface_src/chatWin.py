@@ -5,6 +5,7 @@ from tkinter import messagebox
 from threading import Thread
 from PIL import Image
 from CTkListbox import *
+import base64
 
 
 class ChatWindow(CTkToplevel):
@@ -36,8 +37,12 @@ class ChatWindow(CTkToplevel):
             self.message_entry.pack(side=tk.LEFT,pady=5,padx=(5,2),anchor='s')
 
             # Créer un bouton pour envoyer le message
-            self.send_button = CTkButton(self.main_frame, text="",command=self.send_message,width=120,height=80,image=self.send_image)
-            self.send_button.pack(side=tk.LEFT, pady=5, padx=(2,5),anchor='s')
+            #self.send_button = CTkButton(self.main_frame, text="",command=self.send_message,width=120,height=80,image=self.send_image)
+            #self.send_button.pack(side=tk.LEFT, pady=5, padx=(2,5),anchor='s')
+
+            # Ajouter un bouton pour envoyer des fichiers
+            self.send_file_button = CTkButton(self.main_frame, text="Envoyer un fichier", command=self.send_file, width=120, height=40)
+            self.send_file_button.pack(side=tk.LEFT, pady=5, padx=(2, 5), anchor='s')
 
             # Créer un bouton pour fermer la fenêtre de chat
             #self.close_button = tk.Button(self.main_frame, text="Fermer", command=self.destroy)
@@ -69,3 +74,27 @@ class ChatWindow(CTkToplevel):
                 
         else:
             messagebox.showerror("Erreur", message)
+
+    def send_file(self):
+        filepath = tk.filedialog.askopenfilename()
+        if filepath:
+            self.client.client_send_file(filepath, self.room_name, self.selected_user, self.username)
+        else:
+            messagebox.showwarning("Fichier non sélectionné", "Veuillez sélectionner un fichier à envoyer.")
+
+    def handle_file_response(self, data):
+        action = data.get("action")
+        filename = data.get("filename")
+        encoded_file_data = data.get("file_data")
+        sender = data.get("From")
+        room_id = data.get("Id")
+
+        if action == "accept_file" and room_id == self.room_name:
+            self.chat_listbox.insert(tk.END, f"{encoded_file_data}")
+            file_data = base64.b64decode(encoded_file_data)
+            self.chat_listbox.insert(tk.END, f"{file_data}")
+            with open(f"received_{filename}", 'wb') as file:
+                file.write(file_data)
+            self.chat_listbox.insert(tk.END, f"{sender} a envoyé un fichier : {filename}")
+        else:
+            messagebox.showerror("Erreur", "Erreur lors du transfert de fichier.")

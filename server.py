@@ -32,7 +32,7 @@ class SSLServer:
         secure_socket = client_socket
         try:
             while True:
-                data = secure_socket.recv(1024)
+                data = secure_socket.recv(1000000000)
                 if not data:
                     break
                 self.handle_received_data(secure_socket, data)
@@ -186,6 +186,8 @@ class SSLServer:
                 self.handle_room(client_socket, dejsonified_data)
             if dejsonified_data and dejsonified_data.get('action') == "room_message":
                 self.handle_message(client_socket, dejsonified_data)
+            if dejsonified_data and dejsonified_data.get('action') == "send_file":
+                self.handle_file_transfer(client_socket, dejsonified_data)
         except:
             print("Réponse non JSON reçue.")
 
@@ -218,6 +220,41 @@ class SSLServer:
                     break
         except Exception as e:
             print(f"Erreur lors de la déconnexion de {username}: {e}")
+
+    def handle_file_transfer(self, client_socket, data):
+        From = data["From"]
+        To = data["to"]
+        Name = data["name"]
+        filename = data["filename"]
+        file_data = data["file_data"]
+
+        if From and To and Name and filename and file_data:
+            if Name in self.rooms and From in self.rooms[Name]:
+                file_transfer_obj = {
+                    "action": "accept_file",
+                    "From": From,
+                    "to": To,
+                    "name": Name,
+                    "filename": filename,
+                    "file_data": file_data,
+                    "Id": Name
+                }
+                print("bardella")
+                for user in self.server_loggedUsers:
+                    if user['username'] in self.rooms[Name]:
+                        self.server_send_json(user['socket'], file_transfer_obj)
+            else:
+                reject_file_obj = {
+                    "action": "reject_file",
+                    "message": "Vous n'êtes pas dans cette salle."
+                }
+                self.server_send_json(client_socket, reject_file_obj)
+        else:
+            reject_file_obj = {
+                "action": "reject_file",
+                "message": "Informations de fichier manquantes."
+            }
+            self.server_send_json(client_socket, reject_file_obj)
 
 if __name__ == "__main__":
     server = SSLServer('0.0.0.0', 8888)

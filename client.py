@@ -2,6 +2,8 @@ import socket
 import ssl
 import json
 import threading
+import os
+import base64
 
 class SSLClient:
     def __init__(self, host, port):
@@ -40,7 +42,7 @@ class SSLClient:
         except Exception as e:
             print(f"Erreur lors de l'envoi du message: {e}")
     
-    def receive(self, buffer_size=1024):
+    def receive(self, buffer_size=1000000000):
         try:
             data = self.socket.recv(buffer_size)
             return data.decode('utf-8')
@@ -81,6 +83,8 @@ class SSLClient:
                         self.interface.main_window.handle_room_response(dejsonified_data)
                     if dejsonified_data.get('action') == "accept_message" or dejsonified_data.get('action') == "reject_message":
                         self.interface.chat_window.handle_message_response(dejsonified_data)
+                    if dejsonified_data.get('action') == "accept_file" or dejsonified_data.get('action') == "reject_file":
+                        self.interface.chat_window.handle_file_response(dejsonified_data)
 
                 print(f"Réponse du serveur: {response}")
             except ConnectionResetError:
@@ -135,11 +139,23 @@ class SSLClient:
             "message": message
         }
         self.client_send_json(data)
+
+    def client_send_file(self, filepath, room_name, selected_user, username):
+        try:
+            with open(filepath, 'rb') as file:
+                file_data = file.read()
+                encoded_file_data = base64.b64encode(file_data).decode('utf-8')
+                filename = os.path.basename(filepath)
+                data = {
+                    "action": "send_file",
+                    "From": username,
+                    "to": selected_user,
+                    "name": room_name,
+                    "filename": filename,
+                    "file_data": encoded_file_data  # Encode file data to base64 string
+                }
+                self.client_send_json(data)
+        except Exception as e:
+            print(f"Erreur lors de l'envoi du fichier: {e}")
    
-if __name__ == "__main__":
-    client.start()
-    # Example usage
-    # client.client_register('test_user', 'password123')
-    # client.client_login('test_user', 'password123')
-    # client.client_create_room('test_user', 'another_user', 'room1')
-    # client.client_send_chat_message('room1', 'another_user', 'test_user', 'Hello there!')
+
