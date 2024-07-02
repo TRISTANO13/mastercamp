@@ -2,13 +2,8 @@ import socket
 import ssl
 import json
 import threading
-from database import verify_user_db,verify_user_available,register_user_db
+from database import verify_user_db, verify_user_available, register_user_db
 
-# Créer un contexte SSL
-"""context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")"""
-
-# Créer un socket TCP standard
 class SSLServer:
     def __init__(self, host, port):
         self.host = host
@@ -16,6 +11,7 @@ class SSLServer:
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.secure_socket = None
         self.server_loggedUsers = []
+        self.rooms = {}
 
     def server_send(self, client_socket, message):
         try:
@@ -33,27 +29,20 @@ class SSLServer:
 
     def handle_client(self, client_socket, addr):
         print(f"[CONNECT] {addr}")
-        """secure_socket = context.wrap_socket(client_socket, server_side=True)"""
         secure_socket = client_socket
         try:
-            # Recevoir et traiter les données du client
             while True:
                 data = secure_socket.recv(1024)
                 if not data:
                     break
-                
-                # On décide ce qu'on fait de ce qu'on a reçu
                 self.handle_received_data(secure_socket, data)
-                # On affiche ce qu'on a reçu 
                 print(f"[IN] {addr} : {data.decode('utf-8')}")
-
         except Exception as e:
-            print(f"Erreur caca: {e}")
+            print(f"Erreur: {e}")
         finally:
             secure_socket.close()
 
     def server_receive(self):
-        # Accepter la connexion et enrouler avec SSL
         while True:
             client_socket, addr = self.server_socket.accept()
             client_thread = threading.Thread(target=self.handle_client, args=(client_socket, addr))
@@ -70,7 +59,6 @@ class SSLServer:
                     "message": "Connexion réussie.",
                     "username": username
                 }
-
                 self.do_loggin_user(username, client_socket)
                 self.server_send_json(client_socket, accept_login_obj)
             else:
@@ -78,14 +66,12 @@ class SSLServer:
                     "action": "reject_login",
                     "message": "Utilisateur ou mot de passe incorrect."
                 }
-
                 self.server_send_json(client_socket, reject_login_obj)
         else:
             reject_login_obj = {
                 "action": "reject_login",
                 "message": "Utilisateur ou mot de passe manquant."
             }
-
             self.server_send_json(client_socket, reject_login_obj)
 
     def handle_register(self, client_socket, data):
@@ -99,7 +85,6 @@ class SSLServer:
                     "message": "Votre compte a bien été créé.",
                     "username": username
                 }
-
                 register_user_db(username, password)
                 self.server_send_json(client_socket, accept_register_obj)
             else:
@@ -107,7 +92,6 @@ class SSLServer:
                     "action": "reject_register",
                     "message": "Utilisateur déjà existant."
                 }
-
                 self.server_send_json(client_socket, reject_register_obj)
         else:
             reject_register_obj = {
@@ -122,6 +106,13 @@ class SSLServer:
         Name = data["name"]
 
         if From and To and Name:
+            if Name not in self.rooms:
+                self.rooms[Name] = []
+            if From not in self.rooms[Name]:
+                self.rooms[Name].append(From)
+            if To not in self.rooms[Name]:
+                self.rooms[Name].append(To)
+
             accept_room_obj = {
                 "action": "accept_room",
                 "message": "Room créée.",
@@ -130,95 +121,82 @@ class SSLServer:
                 "Name": Name
             }
             self.server_send_json(client_socket, accept_room_obj)
-
         else:
             reject_room_obj = {
-                "action": "reject_login",
-                "message": "Utilisateur ou mot de passe manquant."
+                "action": "reject_room",
+                "message": "Informations de la salle manquantes."
             }
-
             self.server_send_json(client_socket, reject_room_obj)
 
     def handle_message(self, client_socket, data):
         From = data["From"]
         To = data["to"]
-        Id = data["name"]
+        Name = data["name"]
         Message = data["message"]
 
-        if From and To and Id and Message:
-            accept_message_obj = {
-                "action": "accept_message",
-                "message": f"{From} : {Message}",
-                "From": From,
-                "To": To,
-                "Id": Id,
-                "confirmation": "Message recu"
-            }
-            self.server_send_json(client_socket, accept_message_obj)
-
+        if From and To and Name and Message:
+            if Name in self.rooms and From in self.rooms[Name]:
+                accept_message_obj = {
+                    "action": "accept_message",
+                    "message": f"{From} : {Message}",
+                    "From": From,
+                    "To": To,
+                    "Id": Name,
+                    "confirmation": "Message reçu"
+                }
+                for user in self.server_loggedUsers:
+                    if user['username'] in self.rooms[Name]:
+                        self.server_send_json(user['socket'], accept_message_obj)
+            else:
+                reject_message_obj = {
+                    "action": "reject_message",
+                    "message": "Vous n'êtes pas dans cette salle."
+                }
+                self.server_send_json(client_socket, reject_message_obj)
         else:
-            reject_room_obj = {
+            reject_message_obj = {
                 "action": "reject_message",
                 "message": "Utilisateur ou message manquant."
             }
-
-            self.server_send_json(client_socket, reject_room_obj)
+            self.server_send_json(client_socket, reject_message_obj)
 
     def handle_received_data(self, client_socket, data):
-        decoded_data = data.decode('utf-8')  # Je decode la data pour l'avoir en texte
+        decoded_data = data.decode('utf-8')
         dejsonified_data = None
-
-        ## =========== DONNEES RECUES EN JSON ============== ##
         try:
             dejsonified_data = json.loads(decoded_data)
-
             if dejsonified_data and dejsonified_data.get('action') == "login":
                 self.handle_login(client_socket, dejsonified_data)
-
             if dejsonified_data and dejsonified_data.get('action') == "register":
                 self.handle_register(client_socket, dejsonified_data)
-
             if dejsonified_data and dejsonified_data.get('action') == "get_logged_users":
                 loggedUsers_json = {
                     "action": "get_logged_users",
                     "value": self.get_logged_users(client_socket)
                 }
                 self.server_send_json(client_socket, loggedUsers_json)
-
             if dejsonified_data and dejsonified_data.get('action') == "deconnexion":
                 username = dejsonified_data["username"]
-
-                # Supprimer l'utilisateur de la liste des utilisateurs connectés
-                print('1', self.server_loggedUsers)
                 self.do_logout_user(username)
-                print('2', self.server_loggedUsers)
-
                 DecoUser_json = {
                     "action": "close_window",
                 }
                 self.server_send_json(client_socket, DecoUser_json)
-
             if dejsonified_data and dejsonified_data.get('action') == "create_room":
                 self.handle_room(client_socket, dejsonified_data)
-
             if dejsonified_data and dejsonified_data.get('action') == "room_message":
                 self.handle_message(client_socket, dejsonified_data)
-
         except:
-            print("Reponse non JSON reçue.")
-        ## =========== DONNEES RECUES NON JSON ============== ##
+            print("Réponse non JSON reçue.")
 
     def do_loggin_user(self, username, client_socket):
         self.server_loggedUsers.append({"username": username, "socket": client_socket})
 
     def get_logged_users(self, client_socket):
         loggedInUsers = []
-        # Parcours du tableau de dictionnaires
         for users in self.server_loggedUsers:
-            # Extraction de la valeur de la clé 'username' et ajout au tableau
             if 'username' in users:
                 loggedInUsers.append(users['username'])
-
         return loggedInUsers
 
     def start(self):
@@ -226,7 +204,7 @@ class SSLServer:
             self.server_socket.bind((self.host, self.port))
             self.server_socket.listen(5)
             print("Le serveur est en attente de connexions...")
-            receive_thread = threading.Thread(target=server.server_receive, args=())
+            receive_thread = threading.Thread(target=self.server_receive, args=())
             receive_thread.start()
         except Exception as e:
             print("Erreur lors du lancement du server. : \n", e)
@@ -240,7 +218,6 @@ class SSLServer:
                     break
         except Exception as e:
             print(f"Erreur lors de la déconnexion de {username}: {e}")
-
 
 if __name__ == "__main__":
     server = SSLServer('0.0.0.0', 8888)

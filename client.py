@@ -16,27 +16,21 @@ class SSLClient:
 
     def start(self):
         self.connect()
-    ## ========== FONCTIONS ESSENTIELLES 
+    
     def connect(self):
         try:
-            # Créer un socket TCP standard
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # Enrouler le socket avec SSL
-            #self.secure_socket = self.context.wrap_socket(self.socket, server_hostname=self.host)
             self.secure_socket = self.socket
-            # Connecter au serveur
             self.secure_socket.connect((self.host, self.port))
             print(f"Connexion réussie à {self.host}:{self.port}")
-            #response = self.receive(1024)
             receive_thread = threading.Thread(target=self.client_receive, args=())
             receive_thread.start()
-
         except Exception as e:
             print(f"Erreur de connexion: {e}")
 
     def client_send(self, message):
         try:
-            self.socket.send(bytes(message,encoding="utf-8"))
+            self.socket.send(bytes(message, encoding="utf-8"))
         except Exception as e:
             print(f"Erreur lors de l'envoi du message: {e}")
 
@@ -58,39 +52,35 @@ class SSLClient:
         data = {
             "action": "get_logged_users"
         }
-        
-        self.socket.sendall(bytes(json.dumps(data),encoding='utf-8'))
+        self.socket.sendall(bytes(json.dumps(data), encoding='utf-8'))
 
     def client_receive(self):
         while True:
             try:
-                # Recevoir des données du serveur
                 response = self.receive()
                 if not response:
                     print("Connexion fermée par le serveur")
                     break
 
                 dejsonified_data = None
-                    # print(decoded_data)
                 try:
-                    dejsonified_data = json.loads(response)  # Convertit le JSON en dictionnaire pour pouvoir l'utiliser avec Python
+                    dejsonified_data = json.loads(response)
                 except:
-                    print(f"Info : Non JSON data received.")
+                    print("Info : Non JSON data received.")
 
-                # Actions disponibles pour le serveur 
-                if dejsonified_data.get('action') == "accept_login" or dejsonified_data.get('action') == "reject_login":
-                    self.interface.login_window.handle_login_response(dejsonified_data)
-                if dejsonified_data.get('action') == "accept_register" or dejsonified_data.get('action') == "reject_register":
-                    self.interface.login_window.handle_register_response(dejsonified_data)
-                if dejsonified_data and dejsonified_data.get('action') == "get_logged_users":
-                    self.interface.main_window.set_loggedIn_Users(dejsonified_data.get('value'))
-                if dejsonified_data and dejsonified_data.get('action') == "close_window":
-                    self.interface.main_window.close_window()
-                if dejsonified_data.get('action') == "accept_room" or dejsonified_data.get('action') == "reject_room":
-                    self.interface.main_window.handle_room_response(dejsonified_data)
-                if dejsonified_data.get('action') == "accept_message" or dejsonified_data.get('action') == "reject_message":
-                    self.interface.chat_window.handle_message_response(dejsonified_data)
-
+                if dejsonified_data:
+                    if dejsonified_data.get('action') == "accept_login" or dejsonified_data.get('action') == "reject_login":
+                        self.interface.login_window.handle_login_response(dejsonified_data)
+                    if dejsonified_data.get('action') == "accept_register" or dejsonified_data.get('action') == "reject_register":
+                        self.interface.login_window.handle_register_response(dejsonified_data)
+                    if dejsonified_data.get('action') == "get_logged_users":
+                        self.interface.main_window.set_loggedIn_Users(dejsonified_data.get('value'))
+                    if dejsonified_data.get('action') == "close_window":
+                        self.interface.main_window.close_window()
+                    if dejsonified_data.get('action') == "accept_room" or dejsonified_data.get('action') == "reject_room":
+                        self.interface.main_window.handle_room_response(dejsonified_data)
+                    if dejsonified_data.get('action') == "accept_message" or dejsonified_data.get('action') == "reject_message":
+                        self.interface.chat_window.handle_message_response(dejsonified_data)
 
                 print(f"Réponse du serveur: {response}")
             except ConnectionResetError:
@@ -104,25 +94,22 @@ class SSLClient:
         except Exception as e:
             print(f"Erreur lors de la fermeture de la connexion: {e}")
 
-    ## ========== FONCTIONS GESTION DES REQUETES DEPUIS LE CLIENT
-    def client_login(self,username,password):
+    def client_login(self, username, password):
         data = {
             "action": "login",
             "username": username,
             "password": password
         }
-        
         self.client_send_json(data)
         
-    def client_deco(self,username):
+    def client_deco(self, username):
         data = {
             "action": "deconnexion",
             "username": username,
         }
         self.client_send_json(data)
 
-
-    def client_register(self,username,password):
+    def client_register(self, username, password):
         data = {
             "action": "register",
             "username": username,
@@ -130,7 +117,7 @@ class SSLClient:
         }
         self.client_send_json(data)
         
-    def client_create_room(self,username,selected_user,room_name):
+    def client_create_room(self, username, selected_user, room_name):
         data = {
             "action": "create_room",
             "From": username,
@@ -139,8 +126,8 @@ class SSLClient:
         }
         self.client_send_json(data)
         
-    def client_send_chat_message(self,room_name,selected_user,username, message):
-        data={
+    def client_send_chat_message(self, room_name, selected_user, username, message):
+        data = {
             "action": "room_message",
             "From": username,
             "to": selected_user,
@@ -148,3 +135,12 @@ class SSLClient:
             "message": message
         }
         self.client_send_json(data)
+   
+if __name__ == "__main__":
+    client = SSLClient('127.0.0.1', 8888)
+    client.start()
+    # Example usage
+    # client.client_register('test_user', 'password123')
+    # client.client_login('test_user', 'password123')
+    # client.client_create_room('test_user', 'another_user', 'room1')
+    # client.client_send_chat_message('room1', 'another_user', 'test_user', 'Hello there!')
