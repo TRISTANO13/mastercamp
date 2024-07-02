@@ -1,6 +1,6 @@
 # database.py
 import sqlite3
-import bcrypt
+import bcrypt 
 
 def initialize_db():
     conn = sqlite3.connect('users.db')

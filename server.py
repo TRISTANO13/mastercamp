@@ -9,6 +9,7 @@ class SSLServer:
         self.host = host
         self.port = port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.secure_socket = None
         self.server_loggedUsers = []
         self.rooms = {}
@@ -43,10 +44,17 @@ class SSLServer:
             secure_socket.close()
 
     def server_receive(self):
-        while True:
-            client_socket, addr = self.server_socket.accept()
-            client_thread = threading.Thread(target=self.handle_client, args=(client_socket, addr))
-            client_thread.start()
+        try:
+            self.server_socket.bind((self.host, self.port))
+            self.server_socket.listen(5)
+            print("Le serveur est en attente de connexions...")
+            while True:
+                client_socket, addr = self.server_socket.accept()
+                ssl_socket = self.context.wrap_socket(client_socket, server_side=True)
+                client_thread = threading.Thread(target=self.handle_client, args=(ssl_socket, addr))
+                client_thread.start()
+        except Exception as e:
+            print("Erreur lors du lancement du serveur. : \n", e)
 
     def handle_login(self, client_socket, data):
         username = data["username"]
@@ -201,13 +209,19 @@ class SSLServer:
 
     def start(self):
         try:
+            self.context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            self.context.load_cert_chain(certfile="./cert.pem", keyfile="./key.pem")
+            
             self.server_socket.bind((self.host, self.port))
             self.server_socket.listen(5)
             print("Le serveur est en attente de connexions...")
-            receive_thread = threading.Thread(target=self.server_receive, args=())
-            receive_thread.start()
+            while True:
+                client_socket, addr = self.server_socket.accept()
+                ssl_socket = self.context.wrap_socket(client_socket, server_side=True)
+                client_thread = threading.Thread(target=self.handle_client, args=(ssl_socket, addr))
+                client_thread.start()
         except Exception as e:
-            print("Erreur lors du lancement du server. : \n", e)
+            print("Erreur lors du lancement du serveur. : \n", e)
 
     def do_logout_user(self, username):
         try:
@@ -220,5 +234,5 @@ class SSLServer:
             print(f"Erreur lors de la déconnexion de {username}: {e}")
 
 if __name__ == "__main__":
-    server = SSLServer('0.0.0.0', 8888)
+    server = SSLServer('127.0.0.1', 8888)
     server.start()
