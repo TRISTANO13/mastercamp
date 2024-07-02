@@ -1,0 +1,17 @@
+# Fichier requirements.txt
+
+# Bibliothèques Python standard (ces modules sont généralement inclus avec Python
+bcrypt
+
+# Dépendances pour la base de données (remplacez selon vos besoins)
+# Si vous utilisez SQLite (bibliothèque standard, généralement pas besoin de l'ajouter ici)
+# Si vous utilisez une autre base de données, ajoutez la bibliothèque appropriée. Par exemple, pour MySQL :
+# mysql-connector-python
+# ou pour PostgreSQL :
+# psycopg2
+
+# Pour manipuler les bases de données avec SQLAlchemy (optionnel si vous utilisez SQLAlchemy)
+# SQLAlchemy
+
+# Ajoutez d'autres dépendances spécifiques à votre application ici
+
