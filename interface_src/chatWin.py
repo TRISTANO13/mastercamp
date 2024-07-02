@@ -21,9 +21,9 @@ class ChatWindow(CTkToplevel):
             self.title(f"Chat Room - {self.room_name}")
             self.geometry("500x460")
             self.send_image = CTkImage(light_image=Image.open('img/send-hor-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/send-hor-svgrepo-com.png').convert('RGBA'),size=(40,40)) # WidthxHeight
-            self.file_image = CTkImage(light_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),size=(25,25)) # WidthxHeight
-            self.emote_image = CTkImage(light_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),size=(25,25)) # WidthxHeight
-            self.trash_image = CTkImage(light_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),size=(25,25)) # WidthxHeight
+            self.file_image = CTkImage(light_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/clip-svgrepo-com.png').convert('RGBA'),size=(18,18)) # WidthxHeight
+            self.emoji_image = CTkImage(light_image=Image.open('img/emoji-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/emoji-svgrepo-com.png').convert('RGBA'),size=(18,18)) # WidthxHeight
+            self.junk_image = CTkImage(light_image=Image.open('img/settings-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/settings-svgrepo-com.png').convert('RGBA'),size=(18,18)) # WidthxHeight
 
 
             # Créer une frame principale
@@ -38,13 +38,13 @@ class ChatWindow(CTkToplevel):
             self.misc_frame.pack(side=tk.LEFT,pady=(2,0), padx=(6,2),anchor='n')
 
             
-            self.file_button = CTkButton(self.misc_frame, text="a",command=self.send_message,width=28,height=28,image=self.file_image)
+            self.file_button = CTkButton(self.misc_frame, text="",command=self.send_message,width=28,height=28,image=self.file_image)
             self.file_button.pack(side=tk.TOP,pady=(1),padx=(4),anchor="n")
             
-            self.emote_button = CTkButton(self.misc_frame, text="b",command=self.send_message,width=28,height=28)
+            self.emote_button = CTkButton(self.misc_frame, text="",command=self.send_message,width=28,height=28,image=self.emoji_image)
             self.emote_button.pack(side=tk.BOTTOM,pady=(1),padx=(4),anchor="w")
 
-            self.junk_button = CTkButton(self.misc_frame, text="c",command=self.send_message,width=28,height=28)
+            self.junk_button = CTkButton(self.misc_frame, text="",command=self.send_message,width=28,height=28,image=self.junk_image)
             self.junk_button.pack(side=tk.BOTTOM,pady=(1),padx=(4),anchor="w")
 
             # Créer une entrée pour saisir les messages
