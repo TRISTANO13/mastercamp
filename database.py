@@ -49,8 +49,3 @@ def verify_user_available(username, password):
     return False
 
 initialize_db()
-if __name__ == "__main__":
-    certfile = 'C:\\Users\\Alexandre\\cyber\\mastercamp\\cert.pem'
-    keyfile = 'C:\\Users\\Alexandre\\cyber\\mastercamp\\key.pem'
-    server = SSLServer('localhost', 8888, certfile, keyfile)
-    server.start()
