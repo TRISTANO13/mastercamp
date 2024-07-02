@@ -210,8 +210,7 @@ class SSLServer:
     def start(self):
         try:
             self.context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-            self.context.load_cert_chain(certfile="C:\\Users\\Alexandre\\cyber\\mastercamp\\cert.pem",
-                                         keyfile="C:\\Users\\Alexandre\\cyber\\mastercamp\\key.pem")
+            self.context.load_cert_chain(certfile="./cert.pem", keyfile="./key.pem")
             
             self.server_socket.bind((self.host, self.port))
             self.server_socket.listen(5)
