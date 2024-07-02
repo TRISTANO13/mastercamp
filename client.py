@@ -140,3 +140,10 @@ if __name__ == "__main__":
     context.verify_mode = ssl.CERT_NONE
     client = SSLClient('127.0.0.1', 8888, context)
     client.start()
+    # Example usage
+    # client.client_register('test_user', 'password123')
+    # client.client_login('test_user', 'password123')
+    # client.client_create_room('test_user', 'another_user', 'room1')
+    # client.client_send_chat_message('room1', 'another_user', 'test_user', 'Hello there!')
+
+
