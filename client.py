@@ -1,3 +1,4 @@
+# client.py
 import socket
 import ssl
 import json
@@ -36,7 +37,7 @@ class SSLClient:
         try:
             self.secure_socket.sendall(json.dumps(json_message).encode("UTF-8"))
         except Exception as e:
-            print(f"Erreur lors de l'envoi du message: {e}")
+            print(f"Erreur lors de l'envoi du message JSON: {e}")
     
     def receive(self, buffer_size=1024):
         try:
@@ -47,10 +48,13 @@ class SSLClient:
             return None
     
     def client_get_logged_users(self):
-        data = {
-            "action": "get_logged_users"
-        }
-        self.secure_socket.sendall(bytes(json.dumps(data), encoding='utf-8'))
+        try:
+            data = {
+                "action": "get_logged_users"
+            }
+            self.secure_socket.sendall(bytes(json.dumps(data), encoding='utf-8'))
+        except Exception as e:
+            print(f"Erreur lors de la demande des utilisateurs connectés: {e}")
 
     def client_receive(self):
         while True:
@@ -63,10 +67,11 @@ class SSLClient:
                 dejsonified_data = None
                 try:
                     dejsonified_data = json.loads(response)
-                except:
+                except json.JSONDecodeError:
                     print("Info : Non JSON data received.")
 
                 if dejsonified_data:
+                    dejsonified_data = self.sanitize_json(dejsonified_data)
                     if dejsonified_data.get('action') == "accept_login" or dejsonified_data.get('action') == "reject_login":
                         self.interface.login_window.handle_login_response(dejsonified_data)
                     if dejsonified_data.get('action') == "accept_register" or dejsonified_data.get('action') == "reject_register":
@@ -84,6 +89,8 @@ class SSLClient:
             except ConnectionResetError:
                 print("Connexion réinitialisée par le serveur")
                 break
+            except Exception as e:
+                print(f"Erreur lors de la réception du message: {e}")
 
     def close(self):
         try:
@@ -133,7 +140,26 @@ class SSLClient:
             "message": message
         }
         self.client_send_json(data)
-   
+
+    def sanitize_json(self, data):
+        try:
+            # Vérifie que data est bien un dictionnaire
+            if not isinstance(data, dict):
+                raise ValueError("Les données ne sont pas un dictionnaire valide.")
+            
+            # Nettoie les valeurs du dictionnaire
+            sanitized_data = {}
+            for key, value in data.items():
+                if isinstance(value, str):
+                    sanitized_data[key] = value.strip()
+                else:
+                    sanitized_data[key] = value
+
+            return sanitized_data
+        except Exception as e:
+            print("Erreur lors de la sanitization des données JSON:", e)
+            return {}
+
 if __name__ == "__main__":
     context = ssl.create_default_context()
     context.check_hostname = False

@@ -41,39 +41,59 @@ class LoginWindow(CTkFrame):
     def login(self):
         username = self.entry_username.get()
         password = self.entry_password.get()
-        self.client.client_login(username,password);
-
+        try:
+            self.client.client_login(username, password)
+        except Exception as e:
+            print("Erreur lors de la tentative de connexion:", e)
+            messagebox.showerror("Erreur", "Une erreur est survenue lors de la tentative de connexion.")
+            
     def handle_login_response(self, data):
-        if data.get("action") == "accept_login":
-            messagebox.showinfo("Success", data.get("message"))
-            self.interface.open_main_window(data.get("username"))
-        else:
-            messagebox.showerror("Error", data.get("message"))
+        try:
+            sanitized_data = self.sanitize_json(data)
+            if sanitized_data.get("action") == "accept_login":
+                messagebox.showinfo("Success", sanitized_data.get("message"))
+                self.interface.open_main_window(sanitized_data.get("username"))
+            else:
+                messagebox.showerror("Error", sanitized_data.get("message"))
+        except Exception as e:
+            print("Erreur lors de la gestion de la réponse de connexion:", e)
+            messagebox.showerror("Erreur", "Une erreur est survenue lors de la gestion de la réponse de connexion.")
                     
-    
     def handle_register_response(self, data):
-        if data.get("action") == "accept_register":
-            messagebox.showinfo("Success", data.get("message"))
-        else:
-            messagebox.showerror("Error", data.get("message"))
+        try:
+            sanitized_data = self.sanitize_json(data)
+            if sanitized_data.get("action") == "accept_register":
+                messagebox.showinfo("Success", sanitized_data.get("message"))
+            else:
+                messagebox.showerror("Error", sanitized_data.get("message"))
+        except Exception as e:
+            print("Erreur lors de la gestion de la réponse d'inscription:", e)
+            messagebox.showerror("Erreur", "Une erreur est survenue lors de la gestion de la réponse d'inscription.")
                 
     def register_user(self):
         username = self.entry_username.get()
         password = self.entry_password.get()
-        self.client.client_register(username,password);
-        
+        try:
+            self.client.client_register(username, password)
+        except Exception as e:
+            print("Erreur lors de l'inscription:", e)
+            messagebox.showerror("Erreur", "Une erreur est survenue lors de l'inscription.")
 
+    def sanitize_json(self, data):
+        try:
+            # Vérifie que data est bien un dictionnaire
+            if not isinstance(data, dict):
+                raise ValueError("Les données ne sont pas un dictionnaire valide.")
+            
+            # Nettoie les valeurs du dictionnaire
+            sanitized_data = {}
+            for key, value in data.items():
+                if isinstance(value, str):
+                    sanitized_data[key] = value.strip()
+                else:
+                    sanitized_data[key] = value
 
-"""
-if username and password:
-            if verify_user_db(username, password):
-                try:
-                    self.client = client
-                    self.client.client_login(username,password);
-                except Exception as e:
-                    messagebox.showerror("Error", f"Erreur lors de la connexion: {e}")
-            else:
-                messagebox.showerror("Error", "Invalid username or password")
-        else:
-            messagebox.showerror("Error", "Username and password are required")"""
-
+            return sanitized_data
+        except Exception as e:
+            print("Erreur lors de la sanitization des données JSON:", e)
+            return {}

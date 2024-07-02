@@ -1,4 +1,4 @@
-# main.py
+#main2.py
 from client import *
 from interface import * 
 
