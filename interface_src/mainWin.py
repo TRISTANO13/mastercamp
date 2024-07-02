@@ -57,6 +57,9 @@ class MainWindow(CTkFrame):
             self.settings.pack(side=tk.LEFT, padx=5)
             
             
+            self.refresh_button = tk.Button(button_frame, text="Rafraichir", command=self.refresh)
+            self.refresh_button.pack(side=tk.LEFT, padx=5)
+            
             self.parent.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         except Exception as e:
@@ -64,8 +67,11 @@ class MainWindow(CTkFrame):
     
     def set_loggedIn_Users(self, users):
         try:
-            self.loggedInUsers = users
-            for user in self.loggedInUsers:
+            # Effacer tous les éléments actuels de la Listbox
+            self.user_listbox.delete(0, tk.END)
+
+            # Insérer les nouveaux utilisateurs dans la Listbox
+            for user in users:
                 self.user_listbox.insert(tk.END, user)
         except Exception as e:
             messagebox.showerror("Erreur", e)
@@ -99,5 +105,7 @@ class MainWindow(CTkFrame):
             self.interface.open_chat_window(data.get("To"),data.get("Name"),data.get("From"))
         else:
             messagebox.showerror("Error", data.get("message"))
-        print()
+            
+    def refresh(self):
+        self.client.client_get_logged_users()
               
