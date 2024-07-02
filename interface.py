@@ -20,7 +20,7 @@ class ChatInterface:
     def open_main_window(self,username):
         try:
             self.login_window.destroy()
-            self.root.geometry("800x500")
+            self.root.geometry("350x600")
             self.main_window = MainWindow(self, username)
         except Exception as e:
             messagebox.showerror("Erreur", e)
