@@ -137,7 +137,6 @@ class SSLClient:
         self.client_send_json(data)
    
 if __name__ == "__main__":
-    client = SSLClient('127.0.0.1', 8888)
     client.start()
     # Example usage
     # client.client_register('test_user', 'password123')
