@@ -1,11 +1,6 @@
 # Fichier requirements.txt
 
-# Bibliothèques Python standard (ces modules sont généralement inclus avec Python)
-socket
-ssl
-json
-threading
-sqlite3
+# Bibliothèques Python standard (ces modules sont généralement inclus avec Python
 bcrypt
 
 # Dépendances pour la base de données (remplacez selon vos besoins)
