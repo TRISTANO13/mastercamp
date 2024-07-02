@@ -36,11 +36,11 @@ class MainWindow(CTkFrame):
             self.main_frame.pack(anchor='s')
 
             # Créer une liste carré pour les noms d'utilisateurs
-            self.user_listbox = CTkListbox(self.main_frame, width=350, height=400,border_color="#2b2b2b")
+            self.user_listbox = CTkListbox(self.main_frame, width=350, height=400,border_color="#2b2b2b",command=self.on_user_select)
             self.user_listbox.pack(pady=10)
 
             # Ajouter un événement de sélection à la Listbox
-            self.user_listbox.bind('<<ListboxSelect>>', self.on_user_select)
+            #self.user_listbox.bind('<<ListboxSelect>>', self.on_user_select)
 
             # Ajouter des noms d'utilisateurs à la liste pour la démonstration
             # Créer les boutons
@@ -50,7 +50,7 @@ class MainWindow(CTkFrame):
             self.create_room_button = CTkButton(button_frame, text="",height=120,width=90,image=self.settings_image)
             self.create_room_button.pack(side=tk.LEFT, padx=5)
 
-            self.disconnect_button = CTkButton(button_frame, text="", command=lambda: self.create_room,height=120,width=90,image=self.chat_image)
+            self.disconnect_button = CTkButton(button_frame, text="", command=self.create_room,height=120,width=90,image=self.chat_image)
             self.disconnect_button.pack(side=tk.LEFT, padx=5)
 
             self.settings = CTkButton(button_frame, text="", command=lambda: self.deco(username),height=120,width=90,image=self.logout_image)
@@ -80,16 +80,11 @@ class MainWindow(CTkFrame):
     def on_closing(self):
         self.deco(self.username)
 
-    def on_user_select(self, event):
-        widget = event.widget
-        selection = widget.curselection()
-        if selection:
-            index = selection[0]
-            self.selected_user = widget.get(index)
-        else:
-            self.selected_user = None
+    def on_user_select(self, value):
+        self.selected_user = value
 
     def create_room(self):
+        print("pipi")
         if hasattr(self, 'selected_user') and self.selected_user:
             room_name = f"Room with {self.selected_user}"
             self.client.client_create_room(self.username,self.selected_user,room_name)
