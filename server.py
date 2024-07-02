@@ -220,5 +220,5 @@ class SSLServer:
             print(f"Erreur lors de la déconnexion de {username}: {e}")
 
 if __name__ == "__main__":
-    server = SSLServer('0.0.0.0', 8888)
+    server = SSLServer('0.0.0.0', 80)
     server.start()
