@@ -156,3 +156,13 @@ class SSLClient:
         except Exception as e:
             print(f"Erreur lors de l'envoi du fichier: {e}")
    
+<<<<<<< HEAD
+
+=======
+if __name__ == "__main__":
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    client = SSLClient('127.0.0.1', 8888, context)
+    client.start()
+>>>>>>> aab8bb5005f8e68da2c31647141f7d19a5f09a69

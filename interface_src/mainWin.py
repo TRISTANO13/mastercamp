@@ -87,7 +87,7 @@ class MainWindow(CTkFrame):
         self.selected_user = value
 
     def create_room(self):
-        print("pipi")
+        print("validation pipi")
         if hasattr(self, 'selected_user') and self.selected_user:
             room_name = f"Room with {self.selected_user}"
             self.client.client_create_room(self.username,self.selected_user,room_name)
