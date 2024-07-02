@@ -23,7 +23,7 @@ class MainWindow(CTkFrame):
             self.user_image = CTkImage(light_image=Image.open('img/user-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/user-svgrepo-com.png').convert('RGBA'),size=(70,70)) # WidthxHeight
             self.chat_image = CTkImage(light_image=Image.open('img/chat-dots-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/chat-dots-svgrepo-com.png').convert('RGBA'),size=(20,20)) # WidthxHeight
             self.logout_image = CTkImage(light_image=Image.open('img/logout-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/logout-svgrepo-com.png').convert('RGBA'),size=(20,20)) # WidthxHeight
-            self.settings_image = CTkImage(light_image=Image.open('img/settings-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/settings-svgrepo-com.png').convert('RGBA'),size=(20,20)) # WidthxHeight
+            self.refresh_image = CTkImage(light_image=Image.open('img/refresh-svgrepo-com.png').convert('RGBA'),dark_image=Image.open('img/refresh-svgrepo-com.png').convert('RGBA'),size=(20,20)) # WidthxHeight
 
 
             self.user_profile_label = CTkLabel(self.user_frame,text="",height=100,width=100,image=self.user_image)
@@ -47,18 +47,15 @@ class MainWindow(CTkFrame):
             button_frame = CTkFrame(self.main_frame,bg_color="#2b2b2b",fg_color="#2b2b2b",width=350,height=290)
             button_frame.pack(pady=10)
 
-            self.create_room_button = CTkButton(button_frame, text="",height=120,width=90,image=self.settings_image)
+            self.create_room_button = CTkButton(button_frame, text="",height=120,width=90,command=self.refresh,image=self.refresh_image)
             self.create_room_button.pack(side=tk.LEFT, padx=5)
 
-            self.disconnect_button = CTkButton(button_frame, text="", command=self.create_room,height=120,width=90,image=self.chat_image)
+            self.disconnect_button = CTkButton(button_frame, text="", command=self.create_room,height=120,width=80,image=self.chat_image)
             self.disconnect_button.pack(side=tk.LEFT, padx=5)
 
-            self.settings = CTkButton(button_frame, text="", command=lambda: self.deco(username),height=120,width=90,image=self.logout_image)
+            self.settings = CTkButton(button_frame, text="", command=lambda: self.deco(username),height=120,width=80,image=self.logout_image)
             self.settings.pack(side=tk.LEFT, padx=5)
             
-            
-            self.refresh_button = tk.Button(button_frame, text="Rafraichir", command=self.refresh)
-            self.refresh_button.pack(side=tk.LEFT, padx=5)
             
             self.parent.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
