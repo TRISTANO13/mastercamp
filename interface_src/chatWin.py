@@ -39,8 +39,8 @@ class ChatWindow(CTkToplevel):
             self.misc_frame.pack(side=tk.LEFT,pady=(2,0), padx=(6,2),anchor='n')
 
             
-            self.file_button = CTkButton(self.misc_frame, text="",command=self.send_message,width=28,height=28,image=self.file_image)
-            self.file_button.pack(side=tk.TOP,pady=(1),padx=(4),anchor="n")
+            self.send_file_button = CTkButton(self.misc_frame, text="",command=self.send_file,width=28,height=28,image=self.file_image)
+            self.send_file_button.pack(side=tk.TOP,pady=(1),padx=(4),anchor="n")
             
             self.emote_button = CTkButton(self.misc_frame, text="",command=self.send_message,width=28,height=28,image=self.emoji_image)
             self.emote_button.pack(side=tk.BOTTOM,pady=(1),padx=(4),anchor="w")
@@ -102,9 +102,7 @@ class ChatWindow(CTkToplevel):
         room_id = data.get("Id")
 
         if action == "accept_file" and room_id == self.room_name:
-            self.chat_listbox.insert(tk.END, f"{encoded_file_data}")
             file_data = base64.b64decode(encoded_file_data)
-            self.chat_listbox.insert(tk.END, f"{file_data}")
             with open(f"received_{filename}", 'wb') as file:
                 file.write(file_data)
             self.chat_listbox.insert(tk.END, f"{sender} a envoyé un fichier : {filename}")
