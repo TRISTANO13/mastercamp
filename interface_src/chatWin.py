@@ -1,11 +1,12 @@
 # chatWin.py
 import tkinter as tk
 from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkImage, CTkToplevel
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 from threading import Thread
 from PIL import Image
 from CTkListbox import *
 import base64
+
 
 
 class ChatWindow(CTkToplevel):
@@ -103,8 +104,13 @@ class ChatWindow(CTkToplevel):
 
         if action == "accept_file" and room_id == self.room_name:
             file_data = base64.b64decode(encoded_file_data)
-            with open(f"received_{filename}", 'wb') as file:
-                file.write(file_data)
-            self.chat_listbox.insert(tk.END, f"{sender} a envoyé un fichier : {filename}")
+            
+            save_path = filedialog.asksaveasfilename(defaultextension=".*", initialfile=filename, title="Enregistrer le fichier sous")
+            if save_path:
+                with open(save_path, 'wb') as file:
+                    file.write(file_data)
+                self.chat_listbox.insert(tk.END, f"{sender} a envoyé un fichier : {filename}")
+            else:
+                messagebox.showinfo("Enregistrement annulé", "L'enregistrement du fichier a été annulé.")
         else:
             messagebox.showerror("Erreur", "Erreur lors du transfert de fichier.")

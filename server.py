@@ -271,5 +271,5 @@ class SSLServer:
             self.server_send_json(client_socket, reject_file_obj)
 
 if __name__ == "__main__":
-    server = SSLServer('127.0.0.1', 8888)
+    server = SSLServer('0.0.0.0', 8888)
     server.start()
