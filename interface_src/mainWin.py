@@ -29,7 +29,7 @@ class MainWindow(CTkFrame):
             self.user_profile_label = CTkLabel(self.user_frame,text="",height=100,width=100,image=self.user_image)
             self.user_profile_label.pack(side=tk.LEFT,anchor="w")
             
-            self.user_name_label = CTkLabel(self.user_frame,text=f"Connected as {self.username}\n",height=100,width=250,anchor='w')
+            self.user_name_label = CTkLabel(self.user_frame,text=f"Connected as {self.username}\n",text_color="#FFF",height=100,width=250,anchor='w')
             self.user_name_label.pack(side=tk.RIGHT,anchor='e',pady=(8,0))
 
             self.main_frame = CTkFrame(self.parent.root,height=500,width=100)
@@ -87,7 +87,6 @@ class MainWindow(CTkFrame):
         self.selected_user = value
 
     def create_room(self):
-        print("validation pipi")
         if hasattr(self, 'selected_user') and self.selected_user:
             room_name = f"Room with {self.selected_user}"
             self.client.client_create_room(self.username,self.selected_user,room_name)
