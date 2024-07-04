@@ -2,7 +2,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkImage
-from CTkListbox import *
+from interface_src.ctklistbox import CTkListbox
 from PIL import Image
 
 class MainWindow(CTkFrame):

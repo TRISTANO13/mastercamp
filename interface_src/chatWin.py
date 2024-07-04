@@ -4,7 +4,7 @@ from customtkinter import CTk, CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkImage
 from tkinter import messagebox, filedialog
 from threading import Thread
 from PIL import Image
-from CTkListbox import *
+from interface_src.ctklistbox import CTkListbox
 import base64
 
 
